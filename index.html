@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horizon Crypto - Professional Cryptocurrency Investment</title>
+    <link rel="stylesheet" href="./CSS/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="icon" type="image/x-icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="index.html" class="logo">
+                <i class="fas fa-rocket"></i>
+                <span>Horizon Crypto</span>
+            </a>
+
+            <ul class="nav-menu">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#markets">Markets</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+
+            <div class="nav-buttons">
+                <a href="login.html" class="btn btn-outline">Login</a>
+                <a href="signup.html" class="btn btn-primary">Sign Up</a>
+            </div>
+
+            <div class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="container hero-container">
+            <div class="hero-content">
+                <h1 class="hero-title">Invest in the Future of <span class="highlight">Cryptocurrency</span></h1>
+                <p class="hero-subtitle">Horizon Crypto provides a secure, professional platform for cryptocurrency
+                    investment with advanced trading tools and portfolio management.</p>
+                <div class="hero-buttons">
+                    <a href="signup.html" class="btn btn-primary btn-large">Start Investing Today</a>
+                    <button class="btn btn-outline btn-large" id="learnMoreBtn">Learn More</button>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <h3>50K+</h3>
+                        <p>Active Investors</p>
+                    </div>
+                    <div class="stat">
+                        <h3>$2.1B+</h3>
+                        <p>Assets Managed</p>
+                    </div>
+                    <div class="stat">
+                        <h3>98%</h3>
+                        <p>Client Satisfaction</p>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-image">
+                <div class="crypto-card">
+                    <div class="card-header">
+                        <h3>Portfolio Overview</h3>
+                        <span class="card-badge">Live</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="portfolio-value">
+                            <h4>Total Balance</h4>
+                            <h2>$42,580.75</h2>
+                            <span class="positive-change">+2.4% Today</span>
+                        </div>
+                        <div class="portfolio-distribution">
+                            <h4>Asset Allocation</h4>
+                            <div class="distribution-item">
+                                <span>Bitcoin (BTC)</span>
+                                <span>45%</span>
+                            </div>
+                            <div class="distribution-item">
+                                <span>Ethereum (ETH)</span>
+                                <span>30%</span>
+                            </div>
+                            <div class="distribution-item">
+                                <span>Cardano (ADA)</span>
+                                <span>15%</span>
+                            </div>
+                            <div class="distribution-item">
+                                <span>Other Assets</span>
+                                <span>10%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header">
+                <h2>Why Choose Horizon Crypto</h2>
+                <p>Our platform offers everything you need for successful cryptocurrency investment</p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Bank-Level Security</h3>
+                    <p>Multi-signature wallets, cold storage, and insurance protection for your digital assets.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>Advanced Analytics</h3>
+                    <p>Real-time market data, predictive analytics, and comprehensive portfolio tracking tools.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h3>Automated Trading</h3>
+                    <p>Set up automated trading strategies with our AI-powered bot marketplace.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <h3>Global Access</h3>
+                    <p>Trade and invest in cryptocurrencies from anywhere in the world, 24/7.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Add this after the Features section in index.html -->
+    <!-- Investment Returns Section -->
+    <section class="investment-returns" id="returns">
+        <div class="container">
+            <div class="section-header">
+                <h2>Investment Returns</h2>
+                <p>Get competitive returns on your cryptocurrency investments</p>
+            </div>
+
+            <div class="returns-timeline">
+                <div class="timeline-item">
+                    <div class="timeline-icon">
+                        <i class="fas fa-gem"></i>
+                    </div>
+                    <div class="timeline-content">
+                        <h3>First Week Returns</h3>
+                        <div class="return-percentage">
+                            <span class="percentage-badge">50%</span>
+                            <span class="return-period">Weekly Return</span>
+                        </div>
+                        <p>Enjoy a guaranteed 50% return on your investment during the first week of joining our
+                            platform.</p>
+                        <ul class="return-features">
+                            <li><i class="fas fa-check-circle"></i> Guaranteed returns</li>
+                            <li><i class="fas fa-check-circle"></i> No hidden fees</li>
+                            <li><i class="fas fa-check-circle"></i> Instant withdrawals</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="timeline-content">
+                        <h3>Ongoing Returns</h3>
+                        <div class="return-percentage">
+                            <span class="percentage-badge">25%</span>
+                            <span class="return-period">Weekly Return</span>
+                        </div>
+                        <p>After the first week, continue earning 25% weekly returns on your investment portfolio.</p>
+                        <ul class="return-features">
+                            <li><i class="fas fa-check-circle"></i> Consistent weekly payouts</li>
+                            <li><i class="fas fa-check-circle"></i> Compounding option available</li>
+                            <li><i class="fas fa-check-circle"></i> Auto-reinvestment feature</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div class="timeline-content">
+                        <h3>Secure Investment</h3>
+                        <div class="return-percentage">
+                            <span class="percentage-badge">100%</span>
+                            <span class="return-period">Protected</span>
+                        </div>
+                        <p>Your investments are protected with our advanced security measures and insurance coverage.
+                        </p>
+                        <ul class="return-features">
+                            <li><i class="fas fa-check-circle"></i> Bank-level security</li>
+                            <li><i class="fas fa-check-circle"></i> Insurance protection</li>
+                            <li><i class="fas fa-check-circle"></i> 24/7 monitoring</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="returns-cta">
+                <div class="cta-card">
+                    <h3>Start Earning Today</h3>
+                    <p>Join thousands of investors already benefiting from our investment returns program.</p>
+                    <div class="cta-stats">
+                        <div class="stat-item">
+                            <h4>$2.5M+</h4>
+                            <p>Paid in Returns</p>
+                        </div>
+                        <div class="stat-item">
+                            <h4>15K+</h4>
+                            <p>Happy Investors</p>
+                        </div>
+                        <div class="stat-item">
+                            <h4>99.8%</h4>
+                            <p>Payout Success</p>
+                        </div>
+                    </div>
+                    <a href="signup.html" class="btn btn-primary btn-large">Start Earning 50% Returns</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Markets Section -->
+    <section class="markets" id="markets">
+        <div class="container">
+            <div class="section-header">
+                <h2>Live Market Prices</h2>
+                <p>Real-time cryptocurrency prices and market trends</p>
+            </div>
+
+            <!-- Market Filters -->
+            <div class="market-filters">
+                <div class="filter-tabs">
+                    <button class="filter-tab active" data-filter="all">All Assets</button>
+                    <button class="filter-tab" data-filter="top">Top Gainers</button>
+                    <button class="filter-tab" data-filter="trending">Trending</button>
+                    <button class="filter-tab" data-filter="favorites">Favorites</button>
+                </div>
+                <div class="market-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchCrypto" placeholder="Search cryptocurrencies...">
+                </div>
+            </div>
+
+            <!-- Market Stats -->
+            <div class="market-stats">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h4>Total Market Cap</h4>
+                        <h3 id="totalMarketCap">$1.84T</h3>
+                        <span class="stat-change positive">+2.4%</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h4>24h Volume</h4>
+                        <h3 id="totalVolume">$68.4B</h3>
+                        <span class="stat-change positive">+12.7%</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-percentage"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h4>BTC Dominance</h4>
+                        <h3 id="btcDominance">52.3%</h3>
+                        <span class="stat-change negative">-0.8%</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-fire"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h4>Fear & Greed Index</h4>
+                        <h3 id="fearGreedIndex">68</h3>
+                        <span class="stat-change neutral">Greed</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Markets Table -->
+            <div class="markets-container">
+                <div class="table-header">
+                    <div class="header-cell">Asset</div>
+                    <div class="header-cell">Price</div>
+                    <div class="header-cell">24h Change</div>
+                    <div class="header-cell">Market Cap</div>
+                    <div class="header-cell">24h Volume</div>
+                    <div class="header-cell">Chart</div>
+                    <div class="header-cell">Actions</div>
+                </div>
+
+                <div class="table-body" id="cryptoTableBody">
+                    <!-- Crypto data will be populated by JavaScript -->
+                </div>
+
+                <div class="market-update">
+                    <span>Last updated: <span id="lastUpdateTime">Just now</span></span>
+                    <button class="refresh-btn" id="refreshMarketData">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="container cta-container">
+            <div class="cta-content">
+                <h2>Ready to Start Your Crypto Journey?</h2>
+                <p>Join thousands of investors who trust Horizon Crypto with their digital asset investments.</p>
+                <a href="signup.html" class="btn btn-primary btn-large">Create Free Account</a>
+            </div>
+            <div class="cta-image">
+                <i class="fas fa-chart-pie"></i>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer" id="contact">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <a href="index.html" class="logo">
+                        <i class="fas fa-rocket"></i>
+                        <span>Horizon Crypto</span>
+                    </a>
+                    <p>Professional cryptocurrency investment platform for modern investors.</p>
+                    <div class="social-icons">
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Platform</h4>
+                    <ul>
+                        <li><a href="#">Trading</a></li>
+                        <li><a href="#">Investing</a></li>
+                        <li><a href="#">Portfolio</a></li>
+                        <li><a href="#">API</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Support</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Cookie Policy</a></li>
+                        <li><a href="#">Risk Disclosure</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2023 Horizon Crypto. All rights reserved.</p>
+                <p>Cryptocurrency investments are subject to market risk. Please read all scheme-related documents
+                    carefully before investing.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Success Toast -->
+    <div class="toast" id="successToast">
+        <div class="toast-content">
+            <i class="fas fa-check-circle"></i>
+            <div class="toast-message">
+                <h4>Success!</h4>
+                <p id="toastMessage">Your action was successful.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="./JAVASCRIPT/main.js"></script>
+</body>
+
+</html>
