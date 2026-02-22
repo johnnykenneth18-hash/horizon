@@ -1944,3 +1944,57 @@ a {
     }
 }
 
+
+
+@media (max-width: 768px) {
+    .nav-menu {
+        position: fixed;
+        top: 70px;
+        left: -100%;
+        width: 100%;
+        flex-direction: column;
+        background-color: var(--bg-color);
+        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        padding: 20px 0;
+        transition: var(--transition);
+    }
+    
+    .nav-menu.active {
+        left: 0;
+    }
+    
+    .nav-menu li {
+        margin: 10px 0;
+        text-align: center;
+    }
+    
+    /* CHANGE THIS SECTION - Remove or modify the display: none */
+    .nav-buttons {
+        display: flex !important; /* Changed from 'none' to 'flex' */
+        flex-direction: column !important;
+        gap: 10px;
+        padding: 15px 20px;
+        width: 100%;
+    }
+    
+    .nav-buttons .btn {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .hamburger {
+        display: flex;
+    }
+    
+    .hamburger.active span:nth-child(1) {
+        transform: rotate(45deg) translate(5px, 5px);
+    }
+    
+    .hamburger.active span:nth-child(2) {
+        opacity: 0;
+    }
+    
+    .hamburger.active span:nth-child(3) {
+        transform: rotate(-45deg) translate(7px, -6px);
+    }
+}
