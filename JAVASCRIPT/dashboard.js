@@ -1008,13 +1008,13 @@ function appendMessage(msg) {
 }
 
   // Event listeners
-  sendBtn.addEventListener("click", sendMessage);
+  sendBtn.addEventListener("click", sendMessage , appendMessage);
 
   input.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
-      subscribeToChat();
+      appendMessage();
     }
   });
 

@@ -473,7 +473,7 @@ async function initAdminSupportChat() {
 
   const supabase = window.supabase.createClient(
     "https://grfrcnhmnvasiotejiok.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdyZnJjbmhtbnZhc2lvdGVqaW9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4MzU5OTQsImV4cCI6MjA4MTQxMTk5NH0.oPvC2Ax6fUxnC_6apCdOCAiEMURotfljco6r3_L66_k",
   );
 
   const messagesContainer = document.getElementById("admin-chat-messages");
@@ -659,28 +659,74 @@ async function initAdminSupportChat() {
 
   // ── Real-time ────────────────────────────────────────────────────
   function subscribeAdminChat() {
+    // Remove old subscription if exists
     if (adminChatSubscription) {
       supabase.removeChannel(adminChatSubscription);
     }
 
+    // Global channel for ALL new support messages (not filtered by conversation)
     adminChatSubscription = supabase
-      .channel("admin-support-global")
+      .channel("admin-support-notifications")
+
+      // New message anywhere → refresh list of conversations
       .on(
         "postgres_changes",
         {
           event: "INSERT",
           schema: "public",
           table: "support_messages",
-          filter: "sender_id neq admin",
+          filter: "sender_id!admin", // only user messages trigger
         },
         (payload) => {
-          loadConversations();
+          console.log("→ New user message detected", payload.new);
+          loadConversations(); // refresh left sidebar list
           if (currentAdminConversation === payload.new.conversation_id) {
-            loadConversation(currentAdminConversation);
+            appendAdminMessage(payload.new); // append to open chat
+          }
+          updateAdminUnreadBadge();
+        },
+      )
+
+      // Also listen for read receipt updates if you implement them
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "support_messages",
+        },
+        (payload) => {
+          if (currentAdminConversation === payload.new.conversation_id) {
+            refreshReadStatus(); // optional
           }
         },
       )
-      .subscribe();
+
+      .subscribe((status) => {
+        console.log("[Admin Realtime] Status:", status);
+        if (status === "SUBSCRIBED") {
+          console.log("Admin realtime ready");
+        }
+      });
+  }
+
+  // Helper: append single message without full reload
+  function appendAdminMessage(msg) {
+    if (!msg) return;
+
+    const isFromUser = msg.sender_id !== "admin";
+    const messageDiv = document.createElement("div");
+    messageDiv.className = `message ${isFromUser ? "user" : "admin"}`;
+    messageDiv.innerHTML = `
+        ${msg.content}
+        <span class="message-time">
+            ${new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+        </span>
+    `;
+
+    document.getElementById("admin-chat-messages").appendChild(messageDiv);
+    document.getElementById("admin-chat-messages").scrollTop =
+      document.getElementById("admin-chat-messages").scrollHeight;
   }
 
   // ── Event listeners ──────────────────────────────────────────────
@@ -709,6 +755,7 @@ async function initAdminSupportChat() {
   const navObserver = new MutationObserver(() => {
     if (section.classList.contains("active")) {
       loadConversations();
+      updateAdminUnreadBadge();
       subscribeAdminChat();
     }
   });
@@ -721,6 +768,7 @@ async function initAdminSupportChat() {
   // Initial load if already visible
   if (section.classList.contains("active")) {
     loadConversations();
+    updateAdminUnreadBadge();
     subscribeAdminChat();
   }
 }
