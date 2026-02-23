@@ -854,6 +854,32 @@ let currentConversationId = null;
 let chatSubscription = null;
 
 // Initialize chat when support section is opened
+// Open support chat from header button
+
+
+// Open support chat from header button
+document.getElementById('open-support-chat')?.addEventListener('click', () => {
+    // Hide all other sections
+    document.querySelectorAll('.content-section').forEach(el => {
+        el.classList.remove('active');
+    });
+    
+    // Show chat section
+    const supportSection = document.getElementById('support-section');
+    if (supportSection) {
+        supportSection.classList.add('active');
+        
+        // Update page title & description (optional but nice)
+        document.getElementById('page-title').textContent = 'Support Chat';
+        document.getElementById('page-description').textContent = 'We\'re here to help you 24/7';
+        
+        // Load messages & subscribe (your existing functions)
+        loadMessages();
+        subscribeToChat();
+    }
+});
+
+
 function initSupportChat() {
   const supportSection = document.getElementById("support-section");
   if (!supportSection) return;
@@ -987,7 +1013,16 @@ function initSupportChat() {
     loadMessages();
     subscribeToChat();
   }
-}
+};
+
+document.getElementById('close-support-chat')?.addEventListener('click', () => {
+    document.getElementById('support-section').classList.remove('active');
+    
+    // Optional: go back to dashboard or last section
+    document.getElementById('dashboard-section').classList.add('active');
+    document.getElementById('page-title').textContent = 'Crypto Portfolio';
+    document.getElementById('page-description').textContent = 'Professional cryptocurrency investment platform';
+});
 
 // DEPOSIT SECTION FUNCTIONS
 function initDepositSection() {

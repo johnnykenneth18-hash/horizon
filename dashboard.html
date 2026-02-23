@@ -75,23 +75,23 @@
                     <h1 id="page-title">Crypto Portfolio</h1>
                     <p id="page-description">Professional cryptocurrency investment platform</p>
                 </div>
+
                 <div class="header-right">
-                    <button class="logout-btn" id="logout-btn">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </button>
-
-                    <li class="nav-item" data-section="support">
+                    <!-- New: Support Chat Button -->
+                    <button class="btn-support-chat" id="open-support-chat" title="Chat with Support">
                         <i class="fas fa-headset"></i>
-                        <span>Support Chat</span>
-                        <span class="badge chat-unread" id="unread-chat-count" style="display:none;">0</span>
-                    </li>
-
-
+                        <span class="support-badge chat-unread" id="unread-chat-count" style="display:none;">0</span>
+                    </button>
 
                     <div class="notification">
                         <i class="fas fa-bell"></i>
                         <span class="notification-count" id="notification-count">0</span>
                     </div>
+
+                    <button class="logout-btn" id="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+
                     <div class="current-time" id="current-time"></div>
                 </div>
             </header>
@@ -877,6 +877,9 @@
         <div class="section-header">
             <h2><i class="fas fa-headset"></i> Support Chat</h2>
             <p>Chat with our support team in real-time</p>
+            <button class="btn-back-to-dashboard" id="close-support-chat">
+                <i class="fas fa-arrow-left"></i> Back
+            </button>
         </div>
 
         <div class="chat-container">
