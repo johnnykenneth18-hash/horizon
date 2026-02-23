@@ -960,28 +960,52 @@ function initSupportChat() {
   }
 
   // Real-time listener
-  function subscribeToChat() {
+function subscribeToChat() {
     if (chatSubscription) {
-      supabase.removeChannel(chatSubscription);
+        supabase.removeChannel(chatSubscription);
+        chatSubscription = null;
     }
 
-    chatSubscription = supabase
-      .channel(`support:${currentConversationId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "support_messages",
-          filter: `conversation_id=eq.${currentConversationId}`,
-        },
-        (payload) => {
-          loadMessages();
-          // Optional: play sound or show badge
-        },
-      )
-      .subscribe();
-  }
+    const channelName = `support:conversation:${currentConversationId}`;
+
+    chatSubscription = supabase.channel(channelName)
+        .on('postgres_changes', {
+            event: '*',   // listen to INSERT + UPDATE
+            schema: 'public',
+            table: 'support_messages',
+            filter: `conversation_id=eq.${currentConversationId}`
+        }, (payload) => {
+            console.log('🔔 New chat event:', payload.eventType, payload.new);
+
+            if (payload.eventType === 'INSERT') {
+                // Immediately append new message (optimistic + real-time)
+                appendMessage(payload.new);
+            } else if (payload.eventType === 'UPDATE') {
+                // Handle read receipts or edits if you want
+                refreshReadStatus();
+            }
+
+            // Always scroll to bottom on new message
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        })
+        .subscribe((status) => {
+            console.log('Realtime channel status:', status);
+        });
+}
+
+function appendMessage(msg) {
+    const isUser = msg.sender_id === (currentUser.id || currentUser.email);
+    const div = document.createElement('div');
+    div.className = `message ${isUser ? 'user' : 'admin'}`;
+    div.innerHTML = `
+        ${msg.content}
+        <span class="message-time">
+            ${new Date(msg.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
+        </span>
+        ${isUser ? getReadReceiptHTML(msg.is_read) : ''}
+    `;
+    messagesContainer.appendChild(div);
+}
 
   // Event listeners
   sendBtn.addEventListener("click", sendMessage);
@@ -990,6 +1014,7 @@ function initSupportChat() {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
+      subscribeToChat();
     }
   });
 
