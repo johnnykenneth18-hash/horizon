@@ -164,6 +164,51 @@
                     </div>
                 </section>
 
+                <!-- Support Chat Section -->
+                <section class="content-section" id="support-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-headset"></i> Support Chat</h2>
+                        <p>Chat with our support team in real-time</p>
+                        <button class="btn-back-to-dashboard" id="close-support-chat">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                    </div>
+
+                    <div class="chat-container">
+                        <!-- Chat Header -->
+                        <div class="chat-header">
+                            <div class="chat-user-info">
+                                <div class="chat-avatar">
+                                    <i class="fas fa-user-shield"></i>
+                                </div>
+                                <div>
+                                    <h4>Support Team</h4>
+                                    <span class="status online">Online</span>
+                                </div>
+                            </div>
+                            <button class="btn-icon" id="refresh-chat">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+
+                        <!-- Messages Area -->
+                        <div class="chat-messages" id="chat-messages">
+                            <!-- Messages will be loaded here -->
+                            <div class="chat-welcome">
+                                <p>Welcome! How can we help you today?</p>
+                            </div>
+                        </div>
+
+                        <!-- Input Area -->
+                        <div class="chat-input-area">
+                            <textarea id="chat-message-input" placeholder="Type your message..." rows="1"></textarea>
+                            <button id="send-chat-message" class="btn-send">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- Deposit Section -->
                 <section class="content-section" id="deposit-section">
                     <div class="section-header">
@@ -872,50 +917,7 @@
     </div>
 
 
-    <!-- Support Chat Section -->
-    <section class="content-section" id="support-section">
-        <div class="section-header">
-            <h2><i class="fas fa-headset"></i> Support Chat</h2>
-            <p>Chat with our support team in real-time</p>
-            <button class="btn-back-to-dashboard" id="close-support-chat">
-                <i class="fas fa-arrow-left"></i> Back
-            </button>
-        </div>
 
-        <div class="chat-container">
-            <!-- Chat Header -->
-            <div class="chat-header">
-                <div class="chat-user-info">
-                    <div class="chat-avatar">
-                        <i class="fas fa-user-shield"></i>
-                    </div>
-                    <div>
-                        <h4>Support Team</h4>
-                        <span class="status online">Online</span>
-                    </div>
-                </div>
-                <button class="btn-icon" id="refresh-chat">
-                    <i class="fas fa-sync-alt"></i>
-                </button>
-            </div>
-
-            <!-- Messages Area -->
-            <div class="chat-messages" id="chat-messages">
-                <!-- Messages will be loaded here -->
-                <div class="chat-welcome">
-                    <p>Welcome! How can we help you today?</p>
-                </div>
-            </div>
-
-            <!-- Input Area -->
-            <div class="chat-input-area">
-                <textarea id="chat-message-input" placeholder="Type your message..." rows="1"></textarea>
-                <button id="send-chat-message" class="btn-send">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
-            </div>
-        </div>
-    </section>
 
     <!-- Deposit Success Modal -->
     <div class="modal" id="depositModal">
