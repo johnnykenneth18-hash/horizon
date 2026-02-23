@@ -483,45 +483,68 @@ async function initAdminSupportChat() {
   const usernameEl = document.getElementById("chat-username");
   const inputArea = document.getElementById("admin-chat-input-area");
 
-  // ── Load all conversations ───────────────────────────────────────
   async function loadConversations(search = "") {
     try {
+      // Step 1: Get latest message per conversation + basic info
       let query = supabase
         .from("support_messages")
         .select(
           `
-                    conversation_id,
-                    sender_id,
-                    content,
-                    created_at,
-                    is_read
-                `,
+                conversation_id,
+                sender_id,
+                content,
+                created_at,
+                is_read,
+                users!inner (          // ← join with users table
+                    user_id,
+                    email,
+                    first_name,
+                    last_name
+                )
+            `,
         )
+        .eq(
+          "users.user_id",
+          supabase.raw("substring(support_messages.conversation_id from 6)"),
+        ) // removes 'user-' prefix
         .order("created_at", { ascending: false });
 
       if (search) {
-        query = query.ilike("sender_id", `%${search}%`);
+        // Search in email or name
+        query = query.or(
+          `users.email.ilike.%${search}%, users.first_name.ilike.%${search}%, users.last_name.ilike.%${search}%`,
+        );
       }
 
       const { data, error } = await query;
 
-      if (error) throw error;
+      if (error) {
+        console.error("Conversation load error:", error);
+        return;
+      }
 
-      // Group by conversation_id (usually user_id)
+      // Group by conversation (get the most recent message per user)
       const conversations = {};
-      data.forEach((msg) => {
-        const convId = msg.conversation_id;
+      data.forEach((row) => {
+        const convId = row.conversation_id;
         if (!conversations[convId]) {
+          const user = row.users || {};
+          const name =
+            user.first_name && user.last_name
+              ? `${user.first_name} ${user.last_name}`.trim()
+              : user.email || convId.replace("user-", "");
+
           conversations[convId] = {
             id: convId,
-            lastMessage: msg.content,
-            time: msg.created_at,
+            displayName: name,
+            email: user.email || "—",
+            lastMessage: row.content,
+            time: row.created_at,
             unread: 0,
-            sender: msg.sender_id,
           };
         }
-        // Count unread for this admin
-        if (!msg.is_read && msg.sender_id !== "admin") {
+        // Count unread
+        if (!row.is_read && row.sender_id !== "admin") {
           conversations[convId].unread++;
         }
       });
@@ -535,24 +558,26 @@ async function initAdminSupportChat() {
         return;
       }
 
-      Object.values(conversations).forEach((conv) => {
-        const item = document.createElement("div");
-        item.className = "conversation-item";
-        if (currentAdminConversation === conv.id) {
-          item.classList.add("active");
-        }
+      // Sort by most recent message
+      Object.values(conversations)
+        .sort((a, b) => new Date(b.time) - new Date(a.time))
+        .forEach((conv) => {
+          const item = document.createElement("div");
+          item.className = "conversation-item";
+          if (currentAdminConversation === conv.id)
+            item.classList.add("active");
 
-        const userId = conv.id.replace("user-", ""); // assuming format user-xxx
-        const time = new Date(conv.time).toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        });
+          const time = new Date(conv.time).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
 
-        item.innerHTML = `
+          item.innerHTML = `
                     <div class="avatar"><i class="fas fa-user"></i></div>
                     <div class="info">
-                        <p class="name">${userId.substring(0, 12)}${userId.length > 12 ? "..." : ""}</p>
+                        <p class="name">${conv.displayName}</p>
                         <p class="preview">${conv.lastMessage.substring(0, 40)}${conv.lastMessage.length > 40 ? "..." : ""}</p>
+                        <small style="color:#64748b; font-size:11px;">${conv.email}</small>
                     </div>
                     <div style="margin-left:auto; text-align:right;">
                         <div class="time">${time}</div>
@@ -560,17 +585,17 @@ async function initAdminSupportChat() {
                     </div>
                 `;
 
-        item.addEventListener("click", () => {
-          currentAdminConversation = conv.id;
-          loadConversation(conv.id);
-          document
-            .querySelectorAll(".conversation-item")
-            .forEach((el) => el.classList.remove("active"));
-          item.classList.add("active");
-        });
+          item.addEventListener("click", () => {
+            currentAdminConversation = conv.id;
+            loadConversation(conv.id);
+            document
+              .querySelectorAll(".conversation-item")
+              .forEach((el) => el.classList.remove("active"));
+            item.classList.add("active");
+          });
 
-        listEl.appendChild(item);
-      });
+          listEl.appendChild(item);
+        });
     } catch (err) {
       console.error("Error loading conversations:", err);
     }

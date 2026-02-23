@@ -1008,13 +1008,13 @@ function appendMessage(msg) {
 }
 
   // Event listeners
-  sendBtn.addEventListener("click", sendMessage , appendMessage);
+  sendBtn.addEventListener("click", sendMessage , loadMessages);
 
   input.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
-      appendMessage();
+      loadMessages();
     }
   });
 
