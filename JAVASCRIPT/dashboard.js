@@ -852,39 +852,70 @@ function updateUserInfo() {
 
 let currentConversationId = null;
 let chatSubscription = null;
+let userChatRefreshInterval = null;
 
-// Initialize chat when support section is opened
-// Open support chat from header button
+function startUserChatAutoRefresh() {
+  // Clear any existing interval first
+  if (userChatRefreshInterval) {
+    clearInterval(userChatRefreshInterval);
+  }
 
-
-// Open support chat from header button
-document.getElementById('open-support-chat')?.addEventListener('click', () => {
-    // Hide all other sections
-    document.querySelectorAll('.content-section').forEach(el => {
-        el.classList.remove('active');
-    });
-    
-    // Show chat section
-    const supportSection = document.getElementById('support-section');
-    if (supportSection) {
-        supportSection.classList.add('active');
-        
-        // Update page title & description (optional but nice)
-        document.getElementById('page-title').textContent = 'Support Chat';
-        document.getElementById('page-description').textContent = 'We\'re here to help you 24/7';
-        
-        // Load messages & subscribe (your existing functions)
-        loadMessages();
-        subscribeToChat();
+  userChatRefreshInterval = setInterval(() => {
+    // Only refresh if chat section is still visible
+    const supportSection = document.getElementById("support-section");
+    if (supportSection && supportSection.classList.contains("active")) {
+      console.log("[AUTO] Refreshing user chat...");
+      loadMessages(); // your existing load function
+      // Optional: update unread count if you have it
+      // updateUnreadCount();
+    } else {
+      // Stop interval if chat is closed
+      clearInterval(userChatRefreshInterval);
+      userChatRefreshInterval = null;
     }
+  }, 4000); // 4000 ms = 4 seconds
+}
+
+// Open support chat from header button
+document.getElementById("open-support-chat")?.addEventListener("click", () => {
+  // Hide all other sections
+  document.querySelectorAll(".content-section").forEach((el) => {
+    el.classList.remove("active");
+  });
+
+  // Show chat section
+  const supportSection = document.getElementById("support-section");
+  if (supportSection) {
+    supportSection.classList.add("active");
+
+    // Update page title & description (optional but nice)
+    document.getElementById("page-title").textContent = "Support Chat";
+    document.getElementById("page-description").textContent =
+      "We're here to help you 24/7";
+
+    // Load messages & subscribe (your existing functions)
+    loadMessages();
+    subscribeToChat();
+    startUserChatAutoRefresh();
+  }
 });
 
+document.querySelectorAll(".nav-item").forEach((item) => {
+  item.addEventListener("click", () => {
+    if (!item.dataset.section === "support") {
+      if (userChatRefreshInterval) {
+        clearInterval(userChatRefreshInterval);
+        userChatRefreshInterval = null;
+      }
+    }
+  });
+});
 
 function initSupportChat() {
   const supportSection = document.getElementById("support-section");
   if (!supportSection) return;
 
-  currentConversationId = `user-${currentUser?.id || "guest"}`;
+  currentConversationId = `user-${currentUser?.user_id || currentUser?.id || "guest"}`;
 
   // Elements
   const messagesContainer = document.getElementById("chat-messages");
@@ -960,55 +991,60 @@ function initSupportChat() {
   }
 
   // Real-time listener
-function subscribeToChat() {
+  function subscribeToChat() {
     if (chatSubscription) {
-        supabase.removeChannel(chatSubscription);
-        chatSubscription = null;
+      supabase.removeChannel(chatSubscription);
+      chatSubscription = null;
     }
 
     const channelName = `support:conversation:${currentConversationId}`;
 
-    chatSubscription = supabase.channel(channelName)
-        .on('postgres_changes', {
-            event: '*',   // listen to INSERT + UPDATE
-            schema: 'public',
-            table: 'support_messages',
-            filter: `conversation_id=eq.${currentConversationId}`
-        }, (payload) => {
-            console.log('🔔 New chat event:', payload.eventType, payload.new);
+    chatSubscription = supabase
+      .channel(channelName)
+      .on(
+        "postgres_changes",
+        {
+          event: "*", // listen to INSERT + UPDATE
+          schema: "public",
+          table: "support_messages",
+          filter: `conversation_id=eq.${currentConversationId}`,
+        },
+        (payload) => {
+          console.log("🔔 New chat event:", payload.eventType, payload.new);
 
-            if (payload.eventType === 'INSERT') {
-                // Immediately append new message (optimistic + real-time)
-                appendMessage(payload.new);
-            } else if (payload.eventType === 'UPDATE') {
-                // Handle read receipts or edits if you want
-                refreshReadStatus();
-            }
+          if (payload.eventType === "INSERT") {
+            // Immediately append new message (optimistic + real-time)
+            appendMessage(payload.new);
+          } else if (payload.eventType === "UPDATE") {
+            // Handle read receipts or edits if you want
+            refreshReadStatus();
+          }
 
-            // Always scroll to bottom on new message
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        })
-        .subscribe((status) => {
-            console.log('Realtime channel status:', status);
-        });
-}
+          // Always scroll to bottom on new message
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        },
+      )
+      .subscribe((status) => {
+        console.log("Realtime channel status:", status);
+      });
+  }
 
-function appendMessage(msg) {
+  function appendMessage(msg) {
     const isUser = msg.sender_id === (currentUser.id || currentUser.email);
-    const div = document.createElement('div');
-    div.className = `message ${isUser ? 'user' : 'admin'}`;
+    const div = document.createElement("div");
+    div.className = `message ${isUser ? "user" : "admin"}`;
     div.innerHTML = `
         ${msg.content}
         <span class="message-time">
-            ${new Date(msg.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
+            ${new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
         </span>
-        ${isUser ? getReadReceiptHTML(msg.is_read) : ''}
+        ${isUser ? getReadReceiptHTML(msg.is_read) : ""}
     `;
     messagesContainer.appendChild(div);
-}
+  }
 
   // Event listeners
-  sendBtn.addEventListener("click", sendMessage , loadMessages);
+  sendBtn.addEventListener("click", sendMessage, loadMessages);
 
   input.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -1038,15 +1074,16 @@ function appendMessage(msg) {
     loadMessages();
     subscribeToChat();
   }
-};
+}
 
-document.getElementById('close-support-chat')?.addEventListener('click', () => {
-    document.getElementById('support-section').classList.remove('active');
-    
-    // Optional: go back to dashboard or last section
-    document.getElementById('dashboard-section').classList.add('active');
-    document.getElementById('page-title').textContent = 'Crypto Portfolio';
-    document.getElementById('page-description').textContent = 'Professional cryptocurrency investment platform';
+document.getElementById("close-support-chat")?.addEventListener("click", () => {
+  document.getElementById("support-section").classList.remove("active");
+
+  // Optional: go back to dashboard or last section
+  document.getElementById("dashboard-section").classList.add("active");
+  document.getElementById("page-title").textContent = "Crypto Portfolio";
+  document.getElementById("page-description").textContent =
+    "Professional cryptocurrency investment platform";
 });
 
 // DEPOSIT SECTION FUNCTIONS

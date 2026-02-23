@@ -466,6 +466,47 @@ function loadUsersTable(search = "") {
 
 let currentAdminConversation = null;
 let adminChatSubscription = null;
+let adminChatRefreshInterval = null;
+
+function startAdminChatAutoRefresh() {
+    if (adminChatRefreshInterval) {
+        clearInterval(adminChatRefreshInterval);
+    }
+
+    adminChatRefreshInterval = setInterval(() => {
+        const section = document.getElementById('support-chat-section');
+        if (section && section.classList.contains('active')) {
+            console.log("[AUTO] Refreshing admin chat...");
+            loadConversations();     // refresh list of conversations
+            if (currentAdminConversation) {
+                loadConversation(currentAdminConversation); // refresh open chat
+            }
+            updateAdminUnreadBadge(); // if you have this function
+        } else {
+            clearInterval(adminChatRefreshInterval);
+            adminChatRefreshInterval = null;
+        }
+    }, 5000);
+}
+
+// Start when admin chat section becomes active
+// (assuming you already have a MutationObserver or nav click handler)
+const adminSection = document.getElementById('support-chat-section');
+if (adminSection) {
+    const observer = new MutationObserver(() => {
+        if (adminSection.classList.contains('active')) {
+            loadConversations();
+            startAdminChatAutoRefresh();
+        } else {
+            if (adminChatRefreshInterval) {
+                clearInterval(adminChatRefreshInterval);
+                adminChatRefreshInterval = null;
+            }
+        }
+    });
+
+    observer.observe(adminSection, { attributes: true, attributeFilter: ['class'] });
+}
 
 async function initAdminSupportChat() {
   const section = document.getElementById("support-chat-section");
@@ -483,65 +524,118 @@ async function initAdminSupportChat() {
   const usernameEl = document.getElementById("chat-username");
   const inputArea = document.getElementById("admin-chat-input-area");
 
-  async function loadConversations(search = "") {
+  async function updateAdminUnreadBadge() {
     try {
-      // Get distinct conversations + latest message
-      const { data: messages, error } = await supabase
+      const { count, error } = await supabase
         .from("support_messages")
-        .select("conversation_id, content, created_at, is_read, sender_id")
-        .order("created_at", { ascending: false });
+        .select("*", { count: "exact", head: true })
+        .eq("is_read", false)
+        .neq("sender_id", "admin");
 
       if (error) throw error;
 
-      // Get unique conversation IDs
-      const convIds = [...new Set(messages.map((m) => m.conversation_id))];
-      const userIds = convIds
-        .filter((id) => id.startsWith("user-"))
-        .map((id) => id.substring(5)); // remove 'user-'
+      const badge = document.getElementById("admin-unread-chats");
+      if (!badge) return;
 
-      // Fetch user info for these IDs
-      let usersMap = {};
-      if (userIds.length > 0) {
-        const { data: users } = await supabase
-          .from("users")
-          .select("user_id, email, first_name, last_name")
-          .in("user_id", userIds);
+      if (count > 0) {
+        badge.textContent = count > 99 ? "99+" : count;
+        badge.style.display = "inline-flex";
+      } else {
+        badge.style.display = "none";
+      }
+    } catch (err) {
+      console.error("Unread badge error:", err);
+    }
+  }
 
-        users.forEach((u) => {
-          const name =
-            u.first_name && u.last_name
-              ? `${u.first_name} ${u.last_name}`.trim()
-              : u.email;
-          usersMap[u.user_id] = { name, email: u.email };
-        });
+  async function loadConversations(search = "") {
+    console.log("🔍 Loading conversations...");
+
+    try {
+      const { data: messages, error } = await supabase
+        .from("support_messages")
+        .select(
+          "conversation_id, sender_id, receiver_id, content, created_at, is_read",
+        )
+        .order("created_at", { ascending: false })
+        .limit(100);
+
+      if (error) throw error;
+
+      const listEl = document.getElementById("conversation-list");
+      listEl.innerHTML = "";
+
+      if (!messages || messages.length === 0) {
+        listEl.innerHTML =
+          '<div class="no-conversations">No conversations yet</div>';
+        return;
       }
 
-      // Build conversations
+      // Group by conversation_id and get latest message
       const conversations = {};
+
       messages.forEach((msg) => {
         const convId = msg.conversation_id;
+        if (!convId) return;
+
         if (!conversations[convId]) {
-          const userId = convId.startsWith("user-")
-            ? convId.substring(5)
-            : null;
-          const user = usersMap[userId] || {};
           conversations[convId] = {
             id: convId,
-            displayName: user.name || convId,
-            email: user.email || "—",
-            lastMessage: msg.content,
+            lastMessage: msg.content || "(no message)",
             time: msg.created_at,
             unread: 0,
           };
         }
+
         if (!msg.is_read && msg.sender_id !== "admin") {
           conversations[convId].unread++;
         }
       });
 
-      // ... rest same as before (render loop)
+      // Render list
+      Object.values(conversations)
+        .sort((a, b) => new Date(b.time) - new Date(a.time))
+        .forEach((conv) => {
+          const item = document.createElement("div");
+          item.className = `conversation-item ${currentAdminConversation === conv.id ? "active" : ""}`;
+
+          const timeStr = new Date(conv.time).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+
+          item.innerHTML = `
+                    <div class="avatar"><i class="fas fa-user"></i></div>
+                    <div class="info">
+                        <p class="name">User ${conv.id.substring(0, 8)}...</p>
+                        <p class="preview">${conv.lastMessage.substring(0, 45)}${conv.lastMessage.length > 45 ? "..." : ""}</p>
+                    </div>
+                    <div style="margin-left:auto; display:flex; align-items:center; gap:10px;">
+                        <div class="time">${timeStr}</div>
+                        ${conv.unread > 0 ? `<div class="unread">${conv.unread}</div>` : ""}
+                        <button class="btn-view-details" title="View User Details" data-convid="${conv.id}">
+                            <i class="fas fa-info-circle"></i>
+                        </button>
+                    </div>
+                `;
+
+          item.addEventListener("click", (e) => {
+            if (!e.target.closest(".btn-view-details")) {
+              currentAdminConversation = conv.id;
+              loadConversation(conv.id);
+              document
+                .querySelectorAll(".conversation-item")
+                .forEach((i) => i.classList.remove("active"));
+              item.classList.add("active");
+            }
+          });
+
+          listEl.appendChild(item);
+        });
     } catch (err) {
-      console.error(err);
+      console.error("loadConversations error:", err);
+      document.getElementById("conversation-list").innerHTML =
+        `<div style="color:red; padding:20px;">Error: ${err.message}</div>`;
     }
   }
 
@@ -549,23 +643,16 @@ async function initAdminSupportChat() {
   async function loadConversation(conversationId) {
     if (!conversationId) return;
 
+    document.getElementById("chat-header").style.display = "flex";
+    document.getElementById("admin-chat-input-area").style.display = "flex";
+    document.getElementById("chat-username").textContent =
+      `User ${conversationId.substring(0, 8)}...`;
+
+    const container = document.getElementById("admin-chat-messages");
+    container.innerHTML =
+      '<div style="text-align:center; padding:40px; color:#888;">Loading messages...</div>';
+
     try {
-      const { data: user } = await supabase
-        .from("users")
-        .select("first_name, last_name, email")
-        .eq("user_id", conversationId.replace("user-", ""))
-        .single();
-
-      const displayName = user
-        ? `${user.first_name || ""} ${user.last_name || ""}`.trim() ||
-          user.email
-        : conversationId.replace("user-", "");
-
-      usernameEl.textContent = displayName;
-      header.style.display = "flex";
-      inputArea.style.display = "flex";
-      messagesContainer.innerHTML = "";
-
       const { data: messages, error } = await supabase
         .from("support_messages")
         .select("*")
@@ -574,33 +661,113 @@ async function initAdminSupportChat() {
 
       if (error) throw error;
 
+      container.innerHTML = "";
+
       messages.forEach((msg) => {
-        const isAdmin = msg.sender_id === "admin";
+        const isAdminMsg = msg.sender_id === "admin";
         const div = document.createElement("div");
-        div.className = `message ${isAdmin ? "admin" : "user"}`;
+        div.className = `message ${isAdminMsg ? "admin" : "user"}`;
         div.innerHTML = `
-                    ${msg.content}
-                    <span class="message-time">
-                        ${new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                    </span>
-                `;
-        messagesContainer.appendChild(div);
+                ${msg.content}
+                <span class="message-time">${new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+            `;
+        container.appendChild(div);
       });
 
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
-      // Mark as read (very simple version)
-      if (messages.some((m) => !m.is_read && m.sender_id !== "admin")) {
-        await supabase
-          .from("support_messages")
-          .update({ is_read: true })
-          .eq("conversation_id", conversationId)
-          .neq("sender_id", "admin");
-      }
+      container.scrollTop = container.scrollHeight;
     } catch (err) {
-      console.error("Error loading conversation:", err);
+      console.error(err);
+      container.innerHTML =
+        '<div style="color:red; padding:20px;">Failed to load messages</div>';
     }
   }
+
+  // ====================== VIEW USER DETAILS ======================
+  document.addEventListener("click", async function (e) {
+    const btn = e.target.closest(".btn-view-details");
+    if (!btn) return;
+
+    const convId = btn.dataset.convid;
+    if (!convId) return;
+
+    console.log("[VIEW] Opening details for convId:", convId);
+
+    const modal = document.getElementById("user-details-modal");
+    const loading = document.getElementById("user-details-loading");
+    const content = document.getElementById("user-details-content");
+
+    loading.style.display = "block";
+    content.style.display = "none";
+    modal.style.display = "flex";
+
+    try {
+      // Step 1: Normalize the ID (replace hyphens with underscores + remove prefix)
+      let searchId = convId;
+      if (convId.startsWith("user-")) {
+        searchId = convId.substring(5); // remove 'user-'
+      }
+      // Convert standard UUID (hyphens) to your DB format (underscores)
+      const normalized = "USER_" + searchId.replace(/-/g, "_");
+
+      console.log("[VIEW] Normalized search ID:", normalized);
+
+      // Step 2: Try lookup with the normalized format
+      const { data: user, error } = await supabase
+        .from("users")
+        .select("first_name, last_name, email, phone, user_id, join_date")
+        .eq("user_id", normalized)
+        .maybeSingle();
+
+      if (error && error.code !== "PGRST116") {
+        console.warn("[VIEW] Query error:", error.message);
+      }
+
+      if (user) {
+        console.log("[VIEW] Found matching user:", user.user_id);
+        document.getElementById("detail-name").textContent =
+          `${user.first_name || ""} ${user.last_name || ""}`.trim() ||
+          "Not set";
+        document.getElementById("detail-email").textContent = user.email || "—";
+        document.getElementById("detail-phone").textContent =
+          user.phone || "Not provided";
+        document.getElementById("detail-userid").textContent = user.user_id;
+        document.getElementById("detail-joined").textContent = user.join_date
+          ? new Date(user.join_date).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })
+          : "—";
+      } else {
+        console.log("[VIEW] No match found for normalized ID:", normalized);
+        document.getElementById("detail-name").textContent =
+          "No matching user found";
+        document.getElementById("detail-email").textContent = "—";
+        document.getElementById("detail-phone").textContent = "—";
+        document.getElementById("detail-userid").textContent = convId;
+        document.getElementById("detail-joined").textContent = "—";
+      }
+
+      loading.style.display = "none";
+      content.style.display = "block";
+    } catch (err) {
+      console.error("[VIEW] Modal error:", err);
+      loading.innerHTML = `Error: ${err.message || "Failed to load"}`;
+    }
+  });
+
+  // Close modal handlers (keep these)
+  document.getElementById("close-user-modal")?.addEventListener("click", () => {
+    document.getElementById("user-details-modal").style.display = "none";
+  });
+
+  document
+    .getElementById("user-details-modal")
+    ?.addEventListener("click", (e) => {
+      if (e.target === e.currentTarget) {
+        e.currentTarget.style.display = "none";
+      }
+    });
 
   // ── Send reply ───────────────────────────────────────────────────
   async function sendAdminReply() {

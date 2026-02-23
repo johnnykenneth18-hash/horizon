@@ -345,6 +345,46 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- ====================== USER DETAILS MODAL ====================== -->
+                    <div id="user-details-modal" class="modal" style="display: none;">
+                        <div class="modal-content" style="max-width: 460px;">
+                            <div class="modal-header">
+                                <h3><i class="fas fa-user-circle"></i> User Details</h3>
+                                <button class="modal-close" id="close-user-modal">×</button>
+                            </div>
+                            <div class="modal-body" style="padding: 20px; font-size: 14px;">
+                                <div id="user-details-loading" style="text-align:center; padding: 30px;">
+                                    Loading user information...
+                                </div>
+
+                                <div id="user-details-content" style="display: none;">
+                                    <table style="width:100%; border-collapse: collapse;">
+                                        <tr>
+                                            <td style="padding:8px 0; width:90px; color:#64748b;">Name:</td>
+                                            <td id="detail-name" style="font-weight:600;"></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding:8px 0; color:#64748b;">Email:</td>
+                                            <td id="detail-email"></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding:8px 0; color:#64748b;">Phone:</td>
+                                            <td id="detail-phone"></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding:8px 0; color:#64748b;">User ID:</td>
+                                            <td id="detail-userid" style="font-family:monospace;"></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding:8px 0; color:#64748b;">Joined:</td>
+                                            <td id="detail-joined"></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </section>
 
                 <!-- Deposit Requests Section -->
