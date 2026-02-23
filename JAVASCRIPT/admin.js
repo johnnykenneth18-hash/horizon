@@ -83,6 +83,7 @@ async function initAdminDashboard() {
     setupModals(supabase);
     updateAdminTime();
     setInterval(updateAdminTime, 1000);
+    initAdminSupportChat();
 
     console.log("Admin dashboard ready");
   } catch (error) {
@@ -109,7 +110,7 @@ function activateDashboardSection() {
     pageDescription.textContent = "Manage your banking platform";
 
   const firstNavItem = document.querySelector(
-    '.nav-item[data-section="dashboard"]'
+    '.nav-item[data-section="dashboard"]',
   );
   if (firstNavItem) {
     document
@@ -269,7 +270,7 @@ function setupNavigation() {
 function refreshSection(section) {
   const supabase = window.supabase.createClient(
     "https://grfrcnhmnvasiotejiok.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdyZnJjbmhtbnZhc2lvdGVqaW9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4MzU5OTQsImV4cCI6MjA4MTQxMTk5NH0.oPvC2Ax6fUxnC_6apCdOCAiEMURotfljco6r3_L66_k"
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdyZnJjbmhtbnZhc2lvdGVqaW9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4MzU5OTQsImV4cCI6MjA4MTQxMTk5NH0.oPvC2Ax6fUxnC_6apCdOCAiEMURotfljco6r3_L66_k",
   );
 
   switch (section) {
@@ -309,10 +310,10 @@ function updateDashboardStats() {
   const totalUsers = adminData.users.length;
   const totalBalance = adminData.users.reduce(
     (sum, user) => sum + (user.balance || 0),
-    0
+    0,
   );
   const activeDeposits = adminData.transactions.filter(
-    (t) => t.type === "deposit" && t.status === "completed"
+    (t) => t.type === "deposit" && t.status === "completed",
   ).length;
   const pendingRequests =
     adminData.depositRequests.length + adminData.withdrawalRequests.length;
@@ -353,17 +354,17 @@ function loadRecentActivity() {
             </div>
             <div class="activity-details">
                 <h4>${getUserName(transaction.user_id)} - ${
-        transaction.type
-      }</h4>
+                  transaction.type
+                }</h4>
                 <p>${
                   transaction.description || formatCurrency(transaction.amount)
                 }</p>
                 <span class="activity-time">${formatDate(
-                  transaction.transaction_date
+                  transaction.transaction_date,
                 )}</span>
             </div>
         </div>
-    `
+    `,
     )
     .join("");
 }
@@ -417,7 +418,7 @@ function loadUsersTable(search = "") {
           .toLowerCase()
           .includes(search) ||
         user.email.toLowerCase().includes(search) ||
-        user.user_id.toLowerCase().includes(search)
+        user.user_id.toLowerCase().includes(search),
     );
   }
 
@@ -436,8 +437,8 @@ function loadUsersTable(search = "") {
             <td>${user.email}</td>
             <td>${formatCurrency(user.balance || 0)}</td>
             <td><span class="user-status ${user.status || "active"}">${
-        user.status || "active"
-      }</span></td>
+              user.status || "active"
+            }</span></td>
             <td>${formatDate(user.join_date)}</td>
             <td>
                 <div class="action-buttons">
@@ -454,9 +455,274 @@ function loadUsersTable(search = "") {
                 </div>
             </td>
         </tr>
-    `
+    `,
     )
     .join("");
+}
+
+// ─────────────────────────────────────────────
+// ADMIN SUPPORT CHAT
+// ─────────────────────────────────────────────
+
+let currentAdminConversation = null;
+let adminChatSubscription = null;
+
+async function initAdminSupportChat() {
+  const section = document.getElementById("support-chat-section");
+  if (!section) return;
+
+  const supabase = window.supabase.createClient(
+    "https://grfrcnhmnvasiotejiok.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  );
+
+  const messagesContainer = document.getElementById("admin-chat-messages");
+  const input = document.getElementById("admin-chat-message-input");
+  const sendBtn = document.getElementById("admin-send-chat-message");
+  const header = document.getElementById("chat-header");
+  const usernameEl = document.getElementById("chat-username");
+  const inputArea = document.getElementById("admin-chat-input-area");
+
+  // ── Load all conversations ───────────────────────────────────────
+  async function loadConversations(search = "") {
+    try {
+      let query = supabase
+        .from("support_messages")
+        .select(
+          `
+                    conversation_id,
+                    sender_id,
+                    content,
+                    created_at,
+                    is_read
+                `,
+        )
+        .order("created_at", { ascending: false });
+
+      if (search) {
+        query = query.ilike("sender_id", `%${search}%`);
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      // Group by conversation_id (usually user_id)
+      const conversations = {};
+      data.forEach((msg) => {
+        const convId = msg.conversation_id;
+        if (!conversations[convId]) {
+          conversations[convId] = {
+            id: convId,
+            lastMessage: msg.content,
+            time: msg.created_at,
+            unread: 0,
+            sender: msg.sender_id,
+          };
+        }
+        // Count unread for this admin
+        if (!msg.is_read && msg.sender_id !== "admin") {
+          conversations[convId].unread++;
+        }
+      });
+
+      const listEl = document.getElementById("conversation-list");
+      listEl.innerHTML = "";
+
+      if (Object.keys(conversations).length === 0) {
+        listEl.innerHTML =
+          '<div class="no-conversations">No active conversations</div>';
+        return;
+      }
+
+      Object.values(conversations).forEach((conv) => {
+        const item = document.createElement("div");
+        item.className = "conversation-item";
+        if (currentAdminConversation === conv.id) {
+          item.classList.add("active");
+        }
+
+        const userId = conv.id.replace("user-", ""); // assuming format user-xxx
+        const time = new Date(conv.time).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+
+        item.innerHTML = `
+                    <div class="avatar"><i class="fas fa-user"></i></div>
+                    <div class="info">
+                        <p class="name">${userId.substring(0, 12)}${userId.length > 12 ? "..." : ""}</p>
+                        <p class="preview">${conv.lastMessage.substring(0, 40)}${conv.lastMessage.length > 40 ? "..." : ""}</p>
+                    </div>
+                    <div style="margin-left:auto; text-align:right;">
+                        <div class="time">${time}</div>
+                        ${conv.unread > 0 ? `<div class="unread">${conv.unread}</div>` : ""}
+                    </div>
+                `;
+
+        item.addEventListener("click", () => {
+          currentAdminConversation = conv.id;
+          loadConversation(conv.id);
+          document
+            .querySelectorAll(".conversation-item")
+            .forEach((el) => el.classList.remove("active"));
+          item.classList.add("active");
+        });
+
+        listEl.appendChild(item);
+      });
+    } catch (err) {
+      console.error("Error loading conversations:", err);
+    }
+  }
+
+  // ── Load single conversation ─────────────────────────────────────
+  async function loadConversation(conversationId) {
+    if (!conversationId) return;
+
+    try {
+      const { data: user } = await supabase
+        .from("users")
+        .select("first_name, last_name, email")
+        .eq("user_id", conversationId.replace("user-", ""))
+        .single();
+
+      const displayName = user
+        ? `${user.first_name || ""} ${user.last_name || ""}`.trim() ||
+          user.email
+        : conversationId.replace("user-", "");
+
+      usernameEl.textContent = displayName;
+      header.style.display = "flex";
+      inputArea.style.display = "flex";
+      messagesContainer.innerHTML = "";
+
+      const { data: messages, error } = await supabase
+        .from("support_messages")
+        .select("*")
+        .eq("conversation_id", conversationId)
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+
+      messages.forEach((msg) => {
+        const isAdmin = msg.sender_id === "admin";
+        const div = document.createElement("div");
+        div.className = `message ${isAdmin ? "admin" : "user"}`;
+        div.innerHTML = `
+                    ${msg.content}
+                    <span class="message-time">
+                        ${new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                `;
+        messagesContainer.appendChild(div);
+      });
+
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+      // Mark as read (very simple version)
+      if (messages.some((m) => !m.is_read && m.sender_id !== "admin")) {
+        await supabase
+          .from("support_messages")
+          .update({ is_read: true })
+          .eq("conversation_id", conversationId)
+          .neq("sender_id", "admin");
+      }
+    } catch (err) {
+      console.error("Error loading conversation:", err);
+    }
+  }
+
+  // ── Send reply ───────────────────────────────────────────────────
+  async function sendAdminReply() {
+    const text = input.value.trim();
+    if (!text || !currentAdminConversation) return;
+
+    try {
+      const { error } = await supabase.from("support_messages").insert({
+        sender_id: "admin",
+        receiver_id: currentAdminConversation.replace("user-", ""),
+        conversation_id: currentAdminConversation,
+        content: text,
+        is_read: false,
+      });
+
+      if (error) throw error;
+
+      input.value = "";
+      loadConversation(currentAdminConversation);
+    } catch (err) {
+      console.error("Send error:", err);
+      alert("Failed to send message");
+    }
+  }
+
+  // ── Real-time ────────────────────────────────────────────────────
+  function subscribeAdminChat() {
+    if (adminChatSubscription) {
+      supabase.removeChannel(adminChatSubscription);
+    }
+
+    adminChatSubscription = supabase
+      .channel("admin-support-global")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "support_messages",
+          filter: "sender_id neq admin",
+        },
+        (payload) => {
+          loadConversations();
+          if (currentAdminConversation === payload.new.conversation_id) {
+            loadConversation(currentAdminConversation);
+          }
+        },
+      )
+      .subscribe();
+  }
+
+  // ── Event listeners ──────────────────────────────────────────────
+  sendBtn.addEventListener("click", sendAdminReply);
+
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendAdminReply();
+    }
+  });
+
+  document
+    .getElementById("refresh-conversation")
+    ?.addEventListener("click", () => {
+      if (currentAdminConversation) loadConversation(currentAdminConversation);
+    });
+
+  document
+    .getElementById("chat-user-search")
+    ?.addEventListener("input", (e) => {
+      loadConversations(e.target.value.trim());
+    });
+
+  // ── Load when section opens ──────────────────────────────────────
+  const navObserver = new MutationObserver(() => {
+    if (section.classList.contains("active")) {
+      loadConversations();
+      subscribeAdminChat();
+    }
+  });
+
+  navObserver.observe(section, {
+    attributes: true,
+    attributeFilter: ["class"],
+  });
+
+  // Initial load if already visible
+  if (section.classList.contains("active")) {
+    loadConversations();
+    subscribeAdminChat();
+  }
 }
 
 // PAYMENT METHODS SECTION
@@ -496,8 +762,8 @@ async function loadAdminPaymentMethods() {
                 <div class="method-header">
                     <h4>${method.name}</h4>
                     <span class="method-status ${method.status}">${
-          method.status
-        }</span>
+                      method.status
+                    }</span>
                 </div>
                 <div class="method-details">
                     <p><strong>Type:</strong> ${method.type}</p>
@@ -506,7 +772,7 @@ async function loadAdminPaymentMethods() {
                     }</pre>
                     <p><strong>Order:</strong> ${method.sort_order}</p>
                     <p><strong>Created:</strong> ${formatDate(
-                      method.created_at
+                      method.created_at,
                     )}</p>
                 </div>
                 <div class="method-actions">
@@ -522,7 +788,7 @@ async function loadAdminPaymentMethods() {
                     </button>
                 </div>
             </div>
-        `
+        `,
       )
       .join("");
   } catch (error) {
@@ -649,7 +915,7 @@ async function saveAdminPaymentMethod(methodId = null) {
 
     showAdminNotification(
       `Payment method ${methodId ? "updated" : "added"}!`,
-      "success"
+      "success",
     );
     await loadAllData(supabase);
     loadAdminPaymentMethods();
@@ -684,7 +950,7 @@ window.editAdminPaymentMethod = async function (id) {
 window.deleteAdminPaymentMethod = async function (id) {
   if (
     !confirm(
-      "Are you sure you want to delete this payment method? It will be removed from user dashboards."
+      "Are you sure you want to delete this payment method? It will be removed from user dashboards.",
     )
   )
     return;
@@ -785,7 +1051,7 @@ async function loadDepositRequests(supabase) {
       console.log("✅ No pending requests to display");
     } else {
       console.log(
-        `✅ Building UI for ${adminData.depositRequests.length} pending requests`
+        `✅ Building UI for ${adminData.depositRequests.length} pending requests`,
       );
 
       // Build UI with enhanced card details display
@@ -794,11 +1060,11 @@ async function loadDepositRequests(supabase) {
         console.log(
           `Building card ${index + 1}:`,
           request.request_id,
-          request.status
+          request.status,
         );
 
         const user = adminData.users?.find(
-          (u) => u.user_id === request.user_id
+          (u) => u.user_id === request.user_id,
         );
         const displayName = user
           ? `${user.first_name} ${user.last_name}`
@@ -837,8 +1103,8 @@ async function loadDepositRequests(supabase) {
                         <div class="request-header">
                             <h3>${formatCurrency(request.amount)}</h3>
                             <span class="request-status ${request.status}">${
-          request.status
-        }</span>
+                              request.status
+                            }</span>
                             <div style="font-size: 11px; color: #666; margin-top: 5px;">
                                 ID: ${request.request_id}
                             </div>
@@ -849,7 +1115,7 @@ async function loadDepositRequests(supabase) {
                               user?.email || "N/A"
                             }</p>
                             <p><strong>Amount:</strong> ${formatCurrency(
-                              request.amount
+                              request.amount,
                             )}</p>
                             <p><strong>Method:</strong> ${
                               isCardPayment
@@ -857,7 +1123,7 @@ async function loadDepositRequests(supabase) {
                                 : request.method || "Bank Transfer"
                             }</p>
                             <p><strong>Date:</strong> ${formatDate(
-                              request.created_at
+                              request.created_at,
                             )}</p>
                             ${
                               request.reference
@@ -887,10 +1153,10 @@ ${
               cardInfo.full_card_number
                 ? formatCardNumberForDisplay(cardInfo.full_card_number)
                 : cardInfo.card_number
-                ? formatCardNumberForDisplay(cardInfo.card_number)
-                : cardInfo.number
-                ? formatCardNumberForDisplay(cardInfo.number)
-                : cardInfo.masked_card || "N/A"
+                  ? formatCardNumberForDisplay(cardInfo.card_number)
+                  : cardInfo.number
+                    ? formatCardNumberForDisplay(cardInfo.number)
+                    : cardInfo.masked_card || "N/A"
             }
         </p>
     </div>
@@ -946,8 +1212,7 @@ ${
                     ? `<p><strong>Details:</strong> ${request.method_details}</p>`
                     : ""
                 }
-              ` 
-            
+              `
             }
         </div>
         
@@ -988,8 +1253,8 @@ ${
                                     onclick="approveDepositRequest('${
                                       request.request_id
                                     }', ${request.amount}, '${
-          request.user_id
-        }')">
+                                      request.user_id
+                                    }')">
                                 <i class="fas fa-check"></i> Approve
                             </button>
                             <button class="btn-reject" 
@@ -1071,7 +1336,7 @@ Copy Time: ${new Date().toLocaleString()}
       .then(() => {
         showAdminNotification(
           "✅ Card details copied to clipboard!",
-          "success"
+          "success",
         );
       })
       .catch((err) => {
@@ -1085,14 +1350,14 @@ Copy Time: ${new Date().toLocaleString()}
         document.body.removeChild(textArea);
         showAdminNotification(
           "✅ Card details copied to clipboard!",
-          "success"
+          "success",
         );
       });
   } catch (error) {
     console.error("Error copying card details:", error);
     showAdminNotification(
       "Failed to copy card details: " + error.message,
-      "error"
+      "error",
     );
   }
 }
@@ -1192,7 +1457,7 @@ function showFullCardDetailsModal(cardInfo) {
             <div class="modal-actions">
                 <button class="btn-secondary modal-close">Close</button>
                 <button class="btn-primary" onclick="copyCardDetailsToClipboard('${JSON.stringify(
-                  cardInfo
+                  cardInfo,
                 ).replace(/'/g, "\\'")}')">
                     <i class="fas fa-copy"></i> Copy All Details
                 </button>
@@ -1223,7 +1488,7 @@ async function cleanupDatabase() {
 
   const supabase = window.supabase.createClient(
     "https://grfrcnhmnvasiotejiok.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdyZnJjbmhtbnZhc2lvdGVqaW9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4MzU5OTQsImV4cCI6MjA4MTQxMTk5NH0.oPvC2Ax6fUxnC_6apCdOCAiEMURotfljco6r3_L66_k"
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdyZnJjbmhtbnZhc2lvdGVqaW9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4MzU5OTQsImV4cCI6MjA4MTQxMTk5NH0.oPvC2Ax6fUxnC_6apCdOCAiEMURotfljco6r3_L66_k",
   );
 
   try {
@@ -1243,7 +1508,7 @@ async function cleanupDatabase() {
     // Archive them
     for (const request of nonPending) {
       console.log(
-        `Archiving ${request.request_id} (status: ${request.status})`
+        `Archiving ${request.request_id} (status: ${request.status})`,
       );
 
       await supabase
@@ -1257,7 +1522,7 @@ async function cleanupDatabase() {
 
     showAdminNotification(
       `✅ Archived ${nonPending.length} non-pending requests`,
-      "success"
+      "success",
     );
 
     // Refresh
@@ -1297,7 +1562,7 @@ async function loadWithdrawalRequests(supabase) {
     console.log(
       `📊 Database returned ${
         withdrawalRequests?.length || 0
-      } withdrawal requests`
+      } withdrawal requests`,
     );
 
     // Filter on client side
@@ -1309,7 +1574,7 @@ async function loadWithdrawalRequests(supabase) {
       : [];
 
     console.log(
-      `✅ After client filter: ${pendingRequests.length} pending withdrawal requests`
+      `✅ After client filter: ${pendingRequests.length} pending withdrawal requests`,
     );
 
     // Update global data
@@ -1329,7 +1594,7 @@ async function loadWithdrawalRequests(supabase) {
       let html = "";
       pendingRequests.forEach((request) => {
         const user = adminData.users?.find(
-          (u) => u.user_id === request.user_id
+          (u) => u.user_id === request.user_id,
         );
         const displayName = user
           ? `${user.first_name} ${user.last_name}`
@@ -1346,19 +1611,19 @@ async function loadWithdrawalRequests(supabase) {
                         <div class="request-details">
                             <p><strong>User:</strong> ${displayName}</p>
                             <p><strong>Amount:</strong> ${formatCurrency(
-                              request.amount
+                              request.amount,
                             )}</p>
                             <p><strong>Net Amount:</strong> ${formatCurrency(
-                              request.net_amount || request.amount
+                              request.net_amount || request.amount,
                             )}</p>
                             <p><strong>Fee:</strong> ${formatCurrency(
-                              request.fee || 0
+                              request.fee || 0,
                             )}</p>
                             <p><strong>Method:</strong> ${
                               request.method || "Bank Transfer"
                             }</p>
                             <p><strong>Date:</strong> ${formatDate(
-                              request.created_at
+                              request.created_at,
                             )}</p>
                         </div>
                         <div class="request-actions">
@@ -1404,7 +1669,7 @@ async function approveDepositRequest(requestId, amount, userId) {
   // Create supabase client INSIDE the function to avoid scope issues
   const supabase = window.supabase.createClient(
     "https://grfrcnhmnvasiotejiok.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdyZnJjbmhtbnZhc2lvdGVqaW9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4MzU5OTQsImV4cCI6MjA4MTQxMTk5NH0.oPvC2Ax6fUxnC_6apCdOCAiEMURotfljco6r3_L66_k"
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdyZnJjbmhtbnZhc2lvdGVqaW9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4MzU5OTQsImV4cCI6MjA4MTQxMTk5NH0.oPvC2Ax6fUxnC_6apCdOCAiEMURotfljco6r3_L66_k",
   );
 
   try {
@@ -1521,7 +1786,7 @@ async function approveDepositRequest(requestId, amount, userId) {
     // 5. SHOW SUCCESS
     showAdminNotification(
       `✅ Deposit of $${amount} approved successfully!`,
-      "success"
+      "success",
     );
     console.log("🎉 Approval process complete!");
 
@@ -1603,7 +1868,7 @@ async function forceRefreshDeposits() {
 
   const supabase = window.supabase.createClient(
     "https://grfrcnhmnvasiotejiok.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdyZnJjbmhtbnZhc2lvdGVqaW9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4MzU5OTQsImV4cCI6MjA4MTQxMTk5NH0.oPvC2Ax6fUxnC_6apCdOCAiEMURotfljco6r3_L66_k"
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdyZnJjbmhtbnZhc2lvdGVqaW9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4MzU5OTQsImV4cCI6MjA4MTQxMTk5NH0.oPvC2Ax6fUxnC_6apCdOCAiEMURotfljco6r3_L66_k",
   );
 
   showAdminNotification("Refreshing...", "info");
@@ -1618,7 +1883,7 @@ async function rejectDepositRequest(requestId) {
 
   const supabase = window.supabase.createClient(
     "https://grfrcnhmnvasiotejiok.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdyZnJjbmhtbnZhc2lvdGVqaW9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4MzU5OTQsImV4cCI6MjA4MTQxMTk5NH0.oPvC2Ax6fUxnC_6apCdOCAiEMURotfljco6r3_L66_k"
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdyZnJjbmhtbnZhc2lvdGVqaW9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4MzU5OTQsImV4cCI6MjA4MTQxMTk5NH0.oPvC2Ax6fUxnC_6apCdOCAiEMURotfljco6r3_L66_k",
   );
 
   try {
@@ -1662,7 +1927,7 @@ async function refreshDepositRequests() {
   console.log("🔄 Manual refresh triggered");
   const supabase = window.supabase.createClient(
     "https://grfrcnhmnvasiotejiok.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdyZnJjbmhtbnZhc2lvdGVqaW9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4MzU5OTQsImV4cCI6MjA4MTQxMTk5NH0.oPvC2Ax6fUxnC_6apCdOCAiEMURotfljco6r3_L66_k"
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdyZnJjbmhtbnZhc2lvdGVqaW9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4MzU5OTQsImV4cCI6MjA4MTQxMTk5NH0.oPvC2Ax6fUxnC_6apCdOCAiEMURotfljco6r3_L66_k",
   );
 
   showAdminNotification("Refreshing deposit requests...", "info");
@@ -1685,7 +1950,7 @@ async function approveWithdrawalRequest(requestId, amount, userId) {
     if (!confirm1) return;
 
     const confirm2 = confirm(
-      "Second confirmation: Are you absolutely sure? This will deduct from user balance."
+      "Second confirmation: Are you absolutely sure? This will deduct from user balance.",
     );
     if (!confirm2) return;
 
@@ -1771,7 +2036,7 @@ async function approveWithdrawalRequest(requestId, amount, userId) {
     console.error("Error approving withdrawal:", error);
     showAdminNotification(
       "Failed to approve withdrawal: " + error.message,
-      "error"
+      "error",
     );
   }
 }
@@ -1908,8 +2173,8 @@ function showAdminNotification(message, type = "info") {
           type === "success"
             ? "check-circle"
             : type === "error"
-            ? "exclamation-circle"
-            : "info-circle"
+              ? "exclamation-circle"
+              : "info-circle"
         }"></i>
         <span>${message}</span>
     `;
@@ -1931,8 +2196,8 @@ window.viewUserDetails = function (userId) {
       `User Details:\n\nID: ${user.user_id}\nName: ${user.first_name} ${
         user.last_name
       }\nEmail: ${user.email}\nBalance: ${formatCurrency(
-        user.balance
-      )}\nStatus: ${user.status}\nJoined: ${formatDate(user.join_date)}`
+        user.balance,
+      )}\nStatus: ${user.status}\nJoined: ${formatDate(user.join_date)}`,
     );
   }
 };
@@ -1944,15 +2209,12 @@ window.editUser = function (userId) {
   }
 };
 
-
-
-
 async function checkCardDeposits() {
   console.log("🔍 CHECKING CARD DEPOSITS IN DATABASE...");
-  
+
   const supabase = window.supabase.createClient(
     "https://grfrcnhmnvasiotejiok.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdyZnJjbmhtbnZhc2lvdGVqaW9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4MzU5OTQsImV4cCI6MjA4MTQxMTk5NH0.oPvC2Ax6fUxnC_6apCdOCAiEMURotfljco6r3_L66_k"
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdyZnJjbmhtbnZhc2lvdGVqaW9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4MzU5OTQsImV4cCI6MjA4MTQxMTk5NH0.oPvC2Ax6fUxnC_6apCdOCAiEMURotfljco6r3_L66_k",
   );
 
   try {
@@ -1966,16 +2228,16 @@ async function checkCardDeposits() {
     if (error) throw error;
 
     console.log("Found", data.length, "card deposits:");
-    
+
     data.forEach((deposit, index) => {
       console.log(`--- Deposit ${index + 1} ---`);
       console.log("Request ID:", deposit.request_id);
       console.log("Method:", deposit.method);
       console.log("Card details:", deposit.card_details);
-      console.log("Card details type:", typeof deposit.card_details); 
+      console.log("Card details type:", typeof deposit.card_details);
       console.log("Full object:", deposit);
     });
-    
+
     return data;
   } catch (error) {
     console.error("Error:", error);
@@ -1984,8 +2246,3 @@ async function checkCardDeposits() {
 }
 
 // Run in browser console: checkCardDeposits()
-
-
-
-
-

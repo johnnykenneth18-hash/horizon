@@ -225,6 +225,7 @@ async function initDashboard() {
     initHistorySection();
     initPartnershipSection();
     initAccountsSection();
+    initSupportChat();
 
     // Initialize time display
     updateCurrentTime();
@@ -357,7 +358,7 @@ async function loadUserData(email) {
     const { data: userData, error: userError } = await supabase
       .from("users")
       .select(
-        "user_id, email, first_name, last_name, phone, address, role, status, balance, total_deposits, total_withdrawals, total_interest, referral_code, join_date"
+        "user_id, email, first_name, last_name, phone, address, role, status, balance, total_deposits, total_withdrawals, total_interest, referral_code, join_date",
       )
       .eq("email", email)
       .single();
@@ -484,7 +485,7 @@ async function loadUserTransactions(userId) {
     const { data, error } = await supabase
       .from("transactions")
       .select(
-        "transaction_id, type, amount, method, status, description, transaction_date, reference"
+        "transaction_id, type, amount, method, status, description, transaction_date, reference",
       )
       .eq("user_id", userId)
       .order("transaction_date", { ascending: false })
@@ -615,7 +616,7 @@ function displayPaymentMethodsOnDashboard() {
                     <h4><i class="fas fa-university"></i> ${method.name}</h4>
                     <div class="method-details-display">${method.details.replace(
                       /\n/g,
-                      "<br>"
+                      "<br>",
                     )}</div>
                     <span class="method-type-badge bank">Bank Account</span>
                 </div>
@@ -631,7 +632,7 @@ function displayPaymentMethodsOnDashboard() {
                     <h4><i class="fas fa-coins"></i> ${method.name}</h4>
                     <div class="method-details-display">${method.details.replace(
                       /\n/g,
-                      "<br>"
+                      "<br>",
                     )}</div>
                     <span class="method-type-badge crypto">Cryptocurrency</span>
                 </div>
@@ -651,8 +652,8 @@ function showDepositSuccessModal(amount, method, reference, cardDetails) {
     method === "bank"
       ? "Bank Transfer"
       : method === "crypto"
-      ? "Cryptocurrency"
-      : "Credit/Debit Card";
+        ? "Cryptocurrency"
+        : "Credit/Debit Card";
   document.getElementById("modal-deposit-ref").textContent = reference || "N/A";
 
   // Add card details if available
@@ -779,8 +780,8 @@ function loadRecentTransactions() {
                   transaction.type === "deposit"
                     ? "arrow-down"
                     : transaction.type === "withdrawal"
-                    ? "arrow-up"
-                    : "exchange-alt"
+                      ? "arrow-up"
+                      : "exchange-alt"
                 }"></i>
             </div>
             <div class="transaction-details">
@@ -791,11 +792,11 @@ function loadRecentTransactions() {
             </div>
             <div class="transaction-amount ${transaction.type}">
                 ${transaction.type === "deposit" ? "+" : "-"}${formatCurrency(
-        transaction.amount || 0
-      )}
+                  transaction.amount || 0,
+                )}
             </div>
         </div>
-    `
+    `,
     )
     .join("");
 }
@@ -842,6 +843,149 @@ function updateUserInfo() {
   const referralLink = document.getElementById("referral-link");
   if (referralLink && userAccount.referralCode) {
     referralLink.value = `${window.location.origin}/register?ref=${userAccount.referralCode}`;
+  }
+}
+
+// ---------------------
+// SUPPORT CHAT FEATURE
+// ---------------------
+
+let currentConversationId = null;
+let chatSubscription = null;
+
+// Initialize chat when support section is opened
+function initSupportChat() {
+  const supportSection = document.getElementById("support-section");
+  if (!supportSection) return;
+
+  currentConversationId = `user-${currentUser?.id || "guest"}`;
+
+  // Elements
+  const messagesContainer = document.getElementById("chat-messages");
+  const input = document.getElementById("chat-message-input");
+  const sendBtn = document.getElementById("send-chat-message");
+  const refreshBtn = document.getElementById("refresh-chat");
+
+  // Send message
+  async function sendMessage() {
+    const text = input.value.trim();
+    if (!text || !supabase || !currentUser) return;
+
+    try {
+      const { error } = await supabase.from("support_messages").insert({
+        sender_id: currentUser.id || currentUser.email,
+        receiver_id: "admin",
+        conversation_id: currentConversationId,
+        content: text,
+      });
+
+      if (error) throw error;
+
+      input.value = "";
+      input.focus();
+    } catch (err) {
+      console.error("Send message error:", err);
+      showNotification("Failed to send message", "error");
+    }
+  }
+
+  // Load messages
+  async function loadMessages() {
+    if (!supabase) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("support_messages")
+        .select("*")
+        .eq("conversation_id", currentConversationId)
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+
+      messagesContainer.innerHTML = "";
+
+      if (data.length === 0) {
+        messagesContainer.innerHTML = `
+                    <div class="chat-welcome">
+                        <p>Welcome! How can we help you today?</p>
+                    </div>
+                `;
+        return;
+      }
+
+      data.forEach((msg) => {
+        const isUser = msg.sender_id === (currentUser.id || currentUser.email);
+        const div = document.createElement("div");
+        div.className = `message ${isUser ? "user" : "admin"}`;
+        div.innerHTML = `
+                    ${msg.content}
+                    <span class="message-time">
+                        ${new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                `;
+        messagesContainer.appendChild(div);
+      });
+
+      // Scroll to bottom
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    } catch (err) {
+      console.error("Load messages error:", err);
+    }
+  }
+
+  // Real-time listener
+  function subscribeToChat() {
+    if (chatSubscription) {
+      supabase.removeChannel(chatSubscription);
+    }
+
+    chatSubscription = supabase
+      .channel(`support:${currentConversationId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "support_messages",
+          filter: `conversation_id=eq.${currentConversationId}`,
+        },
+        (payload) => {
+          loadMessages();
+          // Optional: play sound or show badge
+        },
+      )
+      .subscribe();
+  }
+
+  // Event listeners
+  sendBtn.addEventListener("click", sendMessage);
+
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  refreshBtn.addEventListener("click", loadMessages);
+
+  // Load when section becomes active
+  const observer = new MutationObserver(() => {
+    if (supportSection.classList.contains("active")) {
+      loadMessages();
+      subscribeToChat();
+    }
+  });
+
+  observer.observe(supportSection, {
+    attributes: true,
+    attributeFilter: ["class"],
+  });
+
+  // Initial load if already active
+  if (supportSection.classList.contains("active")) {
+    loadMessages();
+    subscribeToChat();
   }
 }
 
@@ -1099,7 +1243,7 @@ async function processDepositRequest() {
 
     console.log(
       "📝 Card details object created:",
-      JSON.stringify(cardDetails, null, 2)
+      JSON.stringify(cardDetails, null, 2),
     );
   } else if (method === "bank") {
     const bankSelect = document.getElementById("bank-select");
@@ -1136,7 +1280,7 @@ async function processDepositRequest() {
 
     reference = txid;
     const cryptoMethod = adminPaymentMethods.crypto.find(
-      (m) => m.id == cryptoId
+      (m) => m.id == cryptoId,
     );
     methodDetails = cryptoMethod ? cryptoMethod.details : "Cryptocurrency";
   }
@@ -1164,7 +1308,7 @@ async function processDepositRequest() {
       depositData.card_details = cardDetails;
       console.log(
         "✅ Adding card_details to deposit data:",
-        depositData.card_details
+        depositData.card_details,
       );
     } else {
       console.log("⚠️ No card details to add for method:", method);
@@ -1172,7 +1316,7 @@ async function processDepositRequest() {
 
     console.log(
       "📤 FINAL DATA TO SEND TO DATABASE:",
-      JSON.stringify(depositData, null, 2)
+      JSON.stringify(depositData, null, 2),
     );
 
     // Insert into database
@@ -1231,7 +1375,7 @@ function showDepositSuccessModal(
   amount,
   method,
   reference,
-  cardDetails = null
+  cardDetails = null,
 ) {
   const modal = document.getElementById("depositModal");
 
@@ -1243,8 +1387,8 @@ function showDepositSuccessModal(
     method === "bank"
       ? "Bank Transfer"
       : method === "crypto"
-      ? "Cryptocurrency"
-      : "Credit/Debit Card";
+        ? "Cryptocurrency"
+        : "Credit/Debit Card";
   document.getElementById("modal-deposit-method").textContent = methodText;
 
   document.getElementById("modal-deposit-ref").textContent = reference || "N/A";
@@ -1439,10 +1583,10 @@ async function processWithdrawalRequest() {
   if (method === "bank") {
     const bankName = document.getElementById("withdrawal-bank-name").value;
     const accountNumber = document.getElementById(
-      "withdrawal-account-number"
+      "withdrawal-account-number",
     ).value;
     const accountHolder = document.getElementById(
-      "withdrawal-account-holder"
+      "withdrawal-account-holder",
     ).value;
     const routing = document.getElementById("withdrawal-routing").value;
 
@@ -1456,7 +1600,7 @@ async function processWithdrawalRequest() {
   } else if (method === "crypto") {
     const cryptoType = document.getElementById("withdrawal-crypto-type").value;
     const walletAddress = document.getElementById(
-      "withdrawal-wallet-address"
+      "withdrawal-wallet-address",
     ).value;
     const network = document.getElementById("withdrawal-network").value;
 
@@ -1550,7 +1694,7 @@ function showWithdrawalSuccessModal(amount, method, netAmount) {
 
   document
     .querySelectorAll(
-      "#withdrawalModal .modal-close, #withdrawalModal .btn-primary"
+      "#withdrawalModal .modal-close, #withdrawalModal .btn-primary",
     )
     .forEach((btn) => {
       btn.addEventListener("click", () => closeModal(modal));
@@ -1628,20 +1772,20 @@ function loadTransactionHistory() {
         <tr>
             <td>${transaction.date}</td>
             <td><span class="transaction-type ${transaction.type}">${
-        transaction.type
-      }</span></td>
+              transaction.type
+            }</span></td>
             <td class="${transaction.type}">${
-        transaction.type === "deposit" ? "+" : "-"
-      }${formatCurrency(transaction.amount)}</td>
+              transaction.type === "deposit" ? "+" : "-"
+            }${formatCurrency(transaction.amount)}</td>
             <td>${transaction.method || "N/A"}</td>
             <td><span class="status ${transaction.status}">${
-        transaction.status
-      }</span></td>
+              transaction.status
+            }</span></td>
             <td>${
               transaction.reference || transaction.id.substring(0, 8)
             }...</td>
         </tr>
-    `
+    `,
     )
     .join("");
 }
@@ -1763,11 +1907,11 @@ function loadAccounts() {
             <div class="account-balance">
                 <p class="amount">${formatCurrency(account.balance)}</p>
                 <span class="account-status ${account.status}">${
-        account.status
-      }</span>
+                  account.status
+                }</span>
             </div>
         </div>
-    `
+    `,
     )
     .join("");
 }
@@ -2131,7 +2275,7 @@ async function viewLatestCardDeposit() {
       console.log("Field names:", Object.keys(data.card_details));
       console.log(
         "Full card number field:",
-        data.card_details.full_card_number
+        data.card_details.full_card_number,
       );
       console.log("Card number field:", data.card_details.card_number);
       console.log("Number field:", data.card_details.number);
@@ -2154,7 +2298,7 @@ async function checkCardDeposits() {
 
   const supabase = window.supabase.createClient(
     "https://grfrcnhmnvasiotejiok.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdyZnJjbmhtbnZhc2lvdGVqaW9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4MzU5OTQsImV4cCI6MjA4MTQxMTk5NH0.oPvC2Ax6fUxnC_6apCdOCAiEMURotfljco6r3_L66_k"
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdyZnJjbmhtbnZhc2lvdGVqaW9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4MzU5OTQsImV4cCI6MjA4MTQxMTk5NH0.oPvC2Ax6fUxnC_6apCdOCAiEMURotfljco6r3_L66_k",
   );
 
   try {

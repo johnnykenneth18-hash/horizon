@@ -36,6 +36,11 @@
                         <i class="fas fa-credit-card"></i>
                         <span>Payment Methods</span>
                     </li>
+                    <li class="nav-item" data-section="support-chat">
+                        <i class="fas fa-comments"></i>
+                        <span>Support Chats</span>
+                        <span class="badge" id="admin-unread-chats">0</span>
+                    </li>
                     <li class="nav-item" data-section="deposit-requests">
                         <i class="fas fa-money-bill-wave"></i>
                         <span>Deposit Requests</span>
@@ -283,6 +288,61 @@
                         <h3>Cryptocurrency Addresses</h3>
                         <div class="accounts-list" id="crypto-accounts-list">
                             <!-- Crypto accounts will be loaded here -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Support Chats Section (Admin) -->
+                <section class="admin-section" id="support-chat-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-comments"></i> Support Conversations</h2>
+                        <p>Manage and respond to user support messages</p>
+                    </div>
+
+                    <div class="admin-chat-layout">
+                        <!-- Left: Conversation List -->
+                        <div class="chat-sidebar">
+                            <div class="chat-search">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="chat-user-search" placeholder="Search users...">
+                            </div>
+                            <div class="conversation-list" id="conversation-list">
+                                <!-- Conversations loaded here -->
+                                <div class="no-conversations">No active conversations yet</div>
+                            </div>
+                        </div>
+
+                        <!-- Right: Chat Area -->
+                        <div class="chat-main">
+                            <div class="chat-header" id="chat-header" style="display:none;">
+                                <div class="chat-user-info">
+                                    <div class="chat-avatar">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div>
+                                        <h4 id="chat-username">Select a conversation</h4>
+                                        <span class="status" id="chat-user-status">—</span>
+                                    </div>
+                                </div>
+                                <button class="btn-icon" id="refresh-conversation">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+
+                            <div class="chat-messages" id="admin-chat-messages">
+                                <div class="chat-placeholder">
+                                    <i class="fas fa-comments fa-3x"></i>
+                                    <p>Select a user from the list to view and reply to their messages</p>
+                                </div>
+                            </div>
+
+                            <div class="chat-input-area" id="admin-chat-input-area" style="display:none;">
+                                <textarea id="admin-chat-message-input" placeholder="Reply to user..."
+                                    rows="1"></textarea>
+                                <button id="admin-send-chat-message" class="btn-send">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </section>
