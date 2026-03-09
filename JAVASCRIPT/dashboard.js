@@ -846,36 +846,6 @@ function updateUserInfo() {
   }
 }
 
-// ---------------------
-// SUPPORT CHAT FEATURE
-// ---------------------
-
-let currentConversationId = null;
-let chatSubscription = null;
-let userChatRefreshInterval = null;
-
-function startUserChatAutoRefresh() {
-  // Clear any existing interval first
-  if (userChatRefreshInterval) {
-    clearInterval(userChatRefreshInterval);
-  }
-
-  userChatRefreshInterval = setInterval(() => {
-    // Only refresh if chat section is still visible
-    const supportSection = document.getElementById("support-section");
-    if (supportSection && supportSection.classList.contains("active")) {
-      console.log("[AUTO] Refreshing user chat...");
-      loadMessages(); // your existing load function
-      // Optional: update unread count if you have it
-      // updateUnreadCount();
-    } else {
-      // Stop interval if chat is closed
-      clearInterval(userChatRefreshInterval);
-      userChatRefreshInterval = null;
-    }
-  }, 4000); // 4000 ms = 4 seconds
-}
-
 // Open support chat from header button
 document.getElementById("open-support-chat")?.addEventListener("click", () => {
   // Hide all other sections
@@ -893,29 +863,25 @@ document.getElementById("open-support-chat")?.addEventListener("click", () => {
     document.getElementById("page-description").textContent =
       "We're here to help you 24/7";
 
-    // Load messages & subscribe (your existing functions)
+    // Load messages & subscribe (your existing functions
     loadMessages();
     subscribeToChat();
-    startUserChatAutoRefresh();
   }
 });
 
-document.querySelectorAll(".nav-item").forEach((item) => {
-  item.addEventListener("click", () => {
-    if (!item.dataset.section === "support") {
-      if (userChatRefreshInterval) {
-        clearInterval(userChatRefreshInterval);
-        userChatRefreshInterval = null;
-      }
-    }
-  });
-});
+// ---------------------
+// SUPPORT CHAT FEATURE
+// ---------------------
 
+let currentConversationId = null;
+let chatSubscription = null;
+
+// Initialize chat when support section is opened
 function initSupportChat() {
   const supportSection = document.getElementById("support-section");
   if (!supportSection) return;
 
-  currentConversationId = `user-${currentUser?.user_id || currentUser?.id || "guest"}`;
+  currentConversationId = `user-${currentUser?.id || "guest"}`;
 
   // Elements
   const messagesContainer = document.getElementById("chat-messages");
@@ -925,25 +891,41 @@ function initSupportChat() {
 
   // Send message
   async function sendMessage() {
-    const text = input.value.trim();
-    if (!text || !supabase || !currentUser) return;
+    const input = document.getElementById("chat-message-input");
+    const content = input.value.trim();
+    if (!content) return;
 
-    try {
-      const { error } = await supabase.from("support_messages").insert({
-        sender_id: currentUser.id || currentUser.email,
+    const supabaseClient = initSupabase();
+    const senderId = userAccount?.id || currentUser?.id || currentUser?.email;
+
+    const { error } = await supabaseClient.from("support_messages").insert([
+      {
+        sender_id: senderId,
         receiver_id: "admin",
         conversation_id: currentConversationId,
-        content: text,
-      });
+        content: content,
+        is_read: false,
+      },
+    ]);
 
-      if (error) throw error;
-
-      input.value = "";
-      input.focus();
-    } catch (err) {
-      console.error("Send message error:", err);
+    if (error) {
+      console.error(error);
       showNotification("Failed to send message", "error");
+      return;
     }
+
+    input.value = "";
+
+    // Optimistic update
+    const container = document.getElementById("chat-messages");
+    appendMessage(
+      {
+        sender_id: senderId,
+        content: content,
+        created_at: new Date().toISOString(),
+      },
+      container,
+    );
   }
 
   // Load messages
@@ -1029,28 +1011,35 @@ function initSupportChat() {
       });
   }
 
-  function appendMessage(msg) {
-    const isUser = msg.sender_id === (currentUser.id || currentUser.email);
-    const div = document.createElement("div");
-    div.className = `message ${isUser ? "user" : "admin"}`;
-    div.innerHTML = `
-        ${msg.content}
-        <span class="message-time">
-            ${new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-        </span>
-        ${isUser ? getReadReceiptHTML(msg.is_read) : ""}
+  // Helper to append single message without full reload
+  function appendMessage(msg, container, currentUserId) {
+    const isSent = msg.sender_id === currentUserId;
+    const messageElem = document.createElement("div");
+    messageElem.classList.add("message", isSent ? "sent" : "received");
+    messageElem.innerHTML = `
+        <div class="message-bubble">
+            <p>${msg.content}</p>
+            <span class="timestamp">${formatDate(msg.created_at)}</span>
+            ${isSent ? `<span class="read-tick">${msg.is_read ? "✓✓" : "✓"}</span>` : ""}
+        </div>
     `;
-    messagesContainer.appendChild(div);
+    container.appendChild(messageElem);
   }
 
   // Event listeners
-  sendBtn.addEventListener("click", sendMessage, loadMessages);
+  sendBtn.addEventListener(
+    "click",
+    sendMessage,
+    subscribeToChat,
+    updateUnreadCount(),
+  );
 
   input.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
-      loadMessages();
+      subscribeToChat();
+      updateUnreadCount();
     }
   });
 
@@ -1061,6 +1050,7 @@ function initSupportChat() {
     if (supportSection.classList.contains("active")) {
       loadMessages();
       subscribeToChat();
+      updateUnreadCount();
     }
   });
 
@@ -1073,18 +1063,25 @@ function initSupportChat() {
   if (supportSection.classList.contains("active")) {
     loadMessages();
     subscribeToChat();
+    updateUnreadCount();
   }
 }
 
-document.getElementById("close-support-chat")?.addEventListener("click", () => {
-  document.getElementById("support-section").classList.remove("active");
+async function updateUnreadCount() {
+  const { count, error } = await supabase
+    .from("support_messages")
+    .select("*", { count: "exact", head: true })
+    .eq("conversation_id", currentConversationId)
+    .eq("is_read", false)
+    .neq("sender_id", currentUser.id || currentUser.email); // not my own messages
 
-  // Optional: go back to dashboard or last section
-  document.getElementById("dashboard-section").classList.add("active");
-  document.getElementById("page-title").textContent = "Crypto Portfolio";
-  document.getElementById("page-description").textContent =
-    "Professional cryptocurrency investment platform";
-});
+  if (!error && count > 0) {
+    document.getElementById("unread-chat-count").textContent = count;
+    document.getElementById("unread-chat-count").style.display = "flex";
+  } else {
+    document.getElementById("unread-chat-count").style.display = "none";
+  }
+}
 
 // DEPOSIT SECTION FUNCTIONS
 function initDepositSection() {

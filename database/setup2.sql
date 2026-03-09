@@ -253,3 +253,51 @@ BEGIN
         FOR EACH ROW EXECUTE FUNCTION update_user_balance();
     END IF;
 END $$;
+
+
+-- Support Messages Table
+CREATE TABLE support_messages (
+    id              BIGSERIAL PRIMARY KEY,
+    message_id      UUID DEFAULT uuid_generate_v4() UNIQUE NOT NULL,
+    sender_id       VARCHAR(50) NOT NULL,          -- user_id or 'admin'
+    receiver_id     VARCHAR(50) NOT NULL,          -- the other party (admin or user_id)
+    conversation_id VARCHAR(100) NOT NULL,          -- e.g. user_id or 'admin-user_id'
+    content         TEXT NOT NULL,
+    is_read         BOOLEAN DEFAULT FALSE,
+    created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Index for fast conversation loading
+CREATE INDEX idx_support_messages_conversation_id ON support_messages(conversation_id);
+CREATE INDEX idx_support_messages_created_at ON support_messages(created_at);
+
+-- Enable RLS
+ALTER TABLE support_messages ENABLE ROW LEVEL SECURITY;
+
+-- Users can only see their own conversations
+CREATE POLICY "Users see their messages"
+    ON support_messages FOR SELECT
+    USING (
+        sender_id = (SELECT user_id FROM users WHERE email = auth.uid()::text)
+        OR receiver_id = (SELECT user_id FROM users WHERE email = auth.uid()::text)
+    );
+
+-- Users can insert their own messages
+CREATE POLICY "Users can send messages"
+    ON support_messages FOR INSERT
+    WITH CHECK (
+        sender_id = (SELECT user_id FROM users WHERE email = auth.uid()::text)
+    );
+
+-- Admin can see and send everything
+CREATE POLICY "Admin full access"
+    ON support_messages FOR ALL
+    USING (
+        (SELECT role FROM users WHERE email = auth.uid()::text) = 'admin'
+    );
+
+-- Auto update timestamp
+CREATE TRIGGER update_support_messages_updated_at
+    BEFORE UPDATE ON support_messages
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
