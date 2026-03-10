@@ -295,7 +295,6 @@
 
 
                 <!-- Support Chats Section -->
-                <!-- Support Chats Section (Admin) -->
                 <section class="admin-section" id="support-chat-section">
                     <div class="section-header">
                         <h2><i class="fas fa-comments"></i> Support Conversations</h2>
@@ -351,8 +350,7 @@
                 </section>
 
 
-
-
+                
                 <!-- Deposit Requests Section -->
                 <section class="admin-section" id="deposit-requests-section">
                     <div class="section-header">
@@ -608,6 +606,72 @@
             </div>
         </div>
     </div>
+
+    <!-- User Details Modal -->
+    <div class="modal" id="user-detail-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>User Details</h2>
+                <button class="modal-close-btn">×</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="user-detail-avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+
+                <div class="user-detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Full Name</span>
+                        <span class="detail-value" id="modal-fullname">—</span>
+                    </div>
+
+                    <div class="detail-item">
+                        <span class="detail-label">User ID</span>
+                        <span class="detail-value" id="modal-userid">—</span>
+                    </div>
+
+                    <div class="detail-item">
+                        <span class="detail-label">Email</span>
+                        <span class="detail-value" id="modal-email">—</span>
+                    </div>
+
+                    <div class="detail-item">
+                        <span class="detail-label">Phone</span>
+                        <span class="detail-value" id="modal-phone">—</span>
+                    </div>
+
+                    <div class="detail-item">
+                        <span class="detail-label">Status</span>
+                        <span class="detail-value" id="modal-status">—</span>
+                    </div>
+
+                    <div class="detail-item">
+                        <span class="detail-label">Joined</span>
+                        <span class="detail-value" id="modal-joined">—</span>
+                    </div>
+
+                    <div class="detail-item">
+                        <span class="detail-label">Current Balance</span>
+                        <span class="detail-value highlight" id="modal-balance">$0.00</span>
+                    </div>
+
+                    <div class="detail-item full-width">
+                        <span class="detail-label">Address</span>
+                        <span class="detail-value" id="modal-address">—</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-secondary" id="close-user-modal">Close</button>
+                <!-- Optional future buttons -->
+                <!-- <button class="btn-primary">Edit User</button> -->
+                <!-- <button class="btn-danger">Suspend Account</button> -->
+            </div>
+        </div>
+    </div>
+
 
 
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>

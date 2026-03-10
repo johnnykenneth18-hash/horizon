@@ -145,43 +145,6 @@ async function restoreSession(supabase) {
   }
 }
 
-function debugAuth() {
-  console.log("🔍 DEBUG - Current Auth State:");
-
-  const items = [
-    "userEmail",
-    "sb_user_id",
-    "sb_session_token",
-    "sb_access_token",
-    "sb_refresh_token",
-    "sb-grfrcnhmnvasiotejiok-auth-token",
-    "supabase.auth.token",
-    "adminAuthenticated",
-    "userRole",
-    "isAdmin",
-    "admin_session",
-  ];
-
-  items.forEach((key) => {
-    const value = localStorage.getItem(key);
-    if (value) {
-      console.log(`${key}:`, `✓ (${value.length} chars)`);
-
-      // Show first 50 chars of interesting values
-      if (key.includes("session") || key.includes("token")) {
-        console.log(`   Content: ${value.substring(0, 50)}...`);
-      }
-    } else {
-      console.log(`${key}: ✗`);
-    }
-  });
-
-  // List all localStorage keys for debugging
-  const allKeys = Object.keys(localStorage);
-  console.log("Complete localStorage keys:", allKeys);
-  console.log("Total items:", allKeys.length);
-}
-
 // Main dashboard initialization
 async function initDashboard() {
   console.log("🚀 INITIALIZING DASHBOARD");
@@ -864,10 +827,22 @@ document.getElementById("open-support-chat")?.addEventListener("click", () => {
       "We're here to help you 24/7";
 
     // Load messages & subscribe (your existing functions
-    loadMessages();
+    loadChatMessages();
     subscribeToChat();
   }
 });
+
+document.getElementById('close-support-chat')?.addEventListener('click', () => {
+    document.getElementById('support-section').classList.remove('active');
+    
+    // Optional: go back to dashboard or last section
+    document.getElementById('dashboard-section').classList.add('active');
+    document.getElementById('page-title').textContent = 'Crypto Portfolio';
+    document.getElementById('page-description').textContent = 'Professional cryptocurrency investment platform';
+});
+document
+  .getElementById("chat-message-input")
+  ?.addEventListener("input", sendTyping);
 
 // ---------------------
 // SUPPORT CHAT FEATURE
@@ -875,6 +850,25 @@ document.getElementById("open-support-chat")?.addEventListener("click", () => {
 
 let currentConversationId = null;
 let chatSubscription = null;
+let chatChannel = null;
+
+// Helper: Get consistent conversation ID (use user UUID)
+function getConversationId() {
+  return currentUser?.id || "guest-" + Date.now();
+}
+async function markMessagesAsRead(conversationId) {
+  try {
+    const supabase = initSupabase();
+    await supabase
+      .from("support_messages")
+      .update({ is_read: true })
+      .eq("conversation_id", conversationId)
+      .eq("receiver_id", currentUser.id); // Mark messages sent to user as read
+    console.log("✅ Messages marked as read");
+  } catch (error) {
+    console.error("Error marking messages as read:", error);
+  }
+}
 
 // Initialize chat when support section is opened
 function initSupportChat() {
@@ -890,42 +884,37 @@ function initSupportChat() {
   const refreshBtn = document.getElementById("refresh-chat");
 
   // Send message
+
   async function sendMessage() {
     const input = document.getElementById("chat-message-input");
+    if (!input || !input.value.trim() || !currentUser?.id) return;
+
     const content = input.value.trim();
-    if (!content) return;
-
-    const supabaseClient = initSupabase();
-    const senderId = userAccount?.id || currentUser?.id || currentUser?.email;
-
-    const { error } = await supabaseClient.from("support_messages").insert([
-      {
-        sender_id: senderId,
-        receiver_id: "admin",
-        conversation_id: currentConversationId,
-        content: content,
-        is_read: false,
-      },
-    ]);
-
-    if (error) {
-      console.error(error);
-      showNotification("Failed to send message", "error");
-      return;
-    }
-
     input.value = "";
 
-    // Optimistic update
-    const container = document.getElementById("chat-messages");
-    appendMessage(
-      {
-        sender_id: senderId,
+    // Optimistic UI update
+    appendMessage(content, true, null, false);
+
+    try {
+      const supabase = initSupabase();
+      const conversationId = getConversationId();
+
+      const { error } = await supabase.from("support_messages").insert({
+        sender_id: currentUser.id,
+        receiver_id: "admin",
+        conversation_id: conversationId,
         content: content,
+        is_read: false,
         created_at: new Date().toISOString(),
-      },
-      container,
-    );
+      });
+
+      if (error) throw error;
+
+      // Realtime will update status to Seen when admin reads
+    } catch (err) {
+      console.error("Failed to send message:", err);
+      showNotification("Message could not be sent", "error");
+    }
   }
 
   // Load messages
@@ -972,85 +961,36 @@ function initSupportChat() {
     }
   }
 
-  // Real-time listener
-  function subscribeToChat() {
-    if (chatSubscription) {
-      supabase.removeChannel(chatSubscription);
-      chatSubscription = null;
-    }
-
-    const channelName = `support:conversation:${currentConversationId}`;
-
-    chatSubscription = supabase
-      .channel(channelName)
-      .on(
-        "postgres_changes",
-        {
-          event: "*", // listen to INSERT + UPDATE
-          schema: "public",
-          table: "support_messages",
-          filter: `conversation_id=eq.${currentConversationId}`,
-        },
-        (payload) => {
-          console.log("🔔 New chat event:", payload.eventType, payload.new);
-
-          if (payload.eventType === "INSERT") {
-            // Immediately append new message (optimistic + real-time)
-            appendMessage(payload.new);
-          } else if (payload.eventType === "UPDATE") {
-            // Handle read receipts or edits if you want
-            refreshReadStatus();
-          }
-
-          // Always scroll to bottom on new message
-          messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        },
-      )
-      .subscribe((status) => {
-        console.log("Realtime channel status:", status);
-      });
-  }
-
-  // Helper to append single message without full reload
-  function appendMessage(msg, container, currentUserId) {
-    const isSent = msg.sender_id === currentUserId;
-    const messageElem = document.createElement("div");
-    messageElem.classList.add("message", isSent ? "sent" : "received");
-    messageElem.innerHTML = `
-        <div class="message-bubble">
-            <p>${msg.content}</p>
-            <span class="timestamp">${formatDate(msg.created_at)}</span>
-            ${isSent ? `<span class="read-tick">${msg.is_read ? "✓✓" : "✓"}</span>` : ""}
-        </div>
-    `;
-    container.appendChild(messageElem);
-  }
 
   // Event listeners
-  sendBtn.addEventListener(
-    "click",
-    sendMessage,
-    subscribeToChat,
-    updateUnreadCount(),
-  );
+  if (sendBtn && input) {
+    sendBtn.addEventListener("click", sendMessage);
+    input.addEventListener("keypress", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+  }
 
   input.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
-      subscribeToChat();
-      updateUnreadCount();
     }
   });
 
-  refreshBtn.addEventListener("click", loadMessages);
+  if (refreshBtn) {
+    refreshBtn.addEventListener("click", () => {
+      loadChatMessages(); // Fixed: Changed from loadMessages to loadChatMessages
+    });
+  }
 
   // Load when section becomes active
   const observer = new MutationObserver(() => {
     if (supportSection.classList.contains("active")) {
-      loadMessages();
+      loadChatMessages();
       subscribeToChat();
-      updateUnreadCount();
     }
   });
 
@@ -1061,9 +1001,156 @@ function initSupportChat() {
 
   // Initial load if already active
   if (supportSection.classList.contains("active")) {
-    loadMessages();
+    loadChatMessages();
     subscribeToChat();
-    updateUnreadCount();
+  }
+
+  input.focus();
+}
+
+// Real-time listener
+function subscribeToChat() {
+  if (!currentUser?.id) return;
+
+  const conversationId = getConversationId();
+
+  // Clean up previous subscription
+  if (chatChannel) {
+    chatChannel.unsubscribe();
+  }
+
+  const supabase = initSupabase();
+  if (!supabase) return;
+
+  chatChannel = supabase.channel(`support:chat:${conversationId}`);
+
+  chatChannel
+    .on(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "support_messages",
+        filter: `conversation_id=eq.${conversationId}`,
+      },
+      (payload) => {
+        const msg = payload.new;
+        const isFromMe = msg.sender_id === currentUser.id;
+
+        appendMessage(msg.content, isFromMe, msg.created_at, msg.is_read);
+
+        // If message is from admin → mark as read
+        if (!isFromMe) {
+          markMessagesAsRead(conversationId);
+        }
+      },
+    )
+    .subscribe((status) => {
+      console.log("Chat realtime status:", status);
+      if (status === "SUBSCRIBED") {
+        console.log("→ Connected to live chat");
+      } else if (status === "CLOSED" || status === "CHANNEL_ERROR") {
+        console.warn("Chat realtime disconnected");
+      }
+    });
+}
+
+// Helper to append single message without full reload
+function appendMessage(content, isFromUser, timestamp = null, isRead = true) {
+  const container = document.getElementById("chat-messages");
+  if (!container) return;
+
+  const msgDiv = document.createElement("div");
+  msgDiv.className = `chat-message ${isFromUser ? "user-message" : "admin-message"}`;
+
+  const time = timestamp
+    ? new Date(timestamp).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+
+  msgDiv.innerHTML = `
+        <div class="message-bubble">
+            <p>${content}</p>
+            <div class="message-meta">
+                <span class="message-time">${time}</span>
+                ${isFromUser ? `<span class="message-status">${isRead ? "Seen" : "Sent"}</span>` : ""}
+            </div>
+        </div>
+    `;
+
+  container.appendChild(msgDiv);
+  container.scrollTop = container.scrollHeight;
+}
+
+let typingTimeout;
+
+function sendTyping() {
+  if (typingTimeout) clearTimeout(typingTimeout);
+
+  // Broadcast typing event (use a separate channel or table if needed)
+  // For simplicity, we can add a temp message or use broadcast
+  const channel = supabase.channel(`typing:${currentUser.id}`);
+  channel.send({
+    type: "broadcast",
+    event: "typing",
+    payload: { userId: currentUser.id },
+  });
+
+  typingTimeout = setTimeout(() => {
+    // Stop typing
+  }, 3000);
+}
+
+async function loadChatMessages() {
+  if (!currentUser?.id) {
+    console.warn("Cannot load messages → no user ID");
+    return;
+  }
+
+  const conversationId = getConversationId();
+
+  try {
+    const supabase = initSupabase();
+    if (!supabase) throw new Error("Supabase not initialized");
+
+    const { data: messages, error } = await supabase
+      .from("support_messages")
+      .select("*")
+      .eq("conversation_id", conversationId)
+      .order("created_at", { ascending: true });
+
+    if (error) throw error;
+
+    const container = document.getElementById("chat-messages");
+    if (!container) return;
+
+    container.innerHTML = ""; // clear
+
+    if (messages.length === 0) {
+      container.innerHTML = `
+                <div class="chat-welcome">
+                    <p>Welcome! How can we help you today?</p>
+                </div>
+            `;
+    } else {
+      messages.forEach((msg) => {
+        const isUserMessage = msg.sender_id === currentUser.id;
+        appendMessage(msg.content, isUserMessage, msg.created_at, msg.is_read);
+      });
+    }
+
+    // Mark messages sent TO me as read
+    await markMessagesAsRead(conversationId);
+
+    container.scrollTop = container.scrollHeight;
+  } catch (err) {
+    console.error("Error loading chat messages:", err);
+    showNotification("Could not load previous messages", "error");
   }
 }
 
@@ -2442,5 +2529,3 @@ function testCardForm() {
 
   return true;
 }
-
-// Run in console: testCardForm()

@@ -3192,3 +3192,164 @@ body {
     padding-bottom: 160px !important; /* Extra space for nav */
   }
 }
+
+
+
+/* ────────────────────────────────────────────────
+   User Detail Modal
+───────────────────────────────────────────────── */
+
+#user-detail-modal .modal-content {
+    max-width: 520px;
+    width: 92vw;
+}
+
+.user-detail-avatar {
+    text-align: center;
+    margin: 10px 0 25px;
+    font-size: 5.5rem;
+    color: #4361ee;
+    opacity: 0.9;
+}
+
+.user-detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 16px 24px;
+    margin-bottom: 20px;
+}
+
+.detail-item {
+    display: contents;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: #555;
+    font-size: 0.95rem;
+    align-self: center;
+}
+
+.detail-value {
+    background: #f8f9fc;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid #ebedf2;
+    font-size: 0.97rem;
+    color: #222;
+}
+
+.detail-value.highlight {
+    font-weight: 700;
+    color: #2d6a4f;
+    background: #e6fffa;
+    border-color: #99f6e4;
+}
+
+.full-width {
+    grid-column: 1 / -1;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid #eee;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    .user-detail-grid {
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+    
+    .detail-label {
+        font-size: 0.9rem;
+    }
+    
+    .detail-value {
+        font-size: 0.95rem;
+    }
+}
+
+
+/*support chat modal css */
+
+.user-detail-profile {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px 0;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 20px;
+}
+
+.user-avatar-large {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+}
+
+.user-detail-info h3 {
+    margin: 0;
+    font-size: 1.4rem;
+}
+
+.user-detail-info p {
+    margin: 4px 0 0;
+    color: #666;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    margin-top: 8px;
+}
+
+.status-badge.active {
+    background: #e6ffe6;
+    color: #006400;
+}
+
+.user-detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.detail-item label {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 4px;
+}
+
+.detail-item p {
+    font-weight: 500;
+    margin: 0;
+}
+
+.detail-item.full-width {
+    grid-column: 1 / -1;
+}
+
+#modal-user-balance {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}

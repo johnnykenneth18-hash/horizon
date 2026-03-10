@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog - Horizon Crypto Insights</title>
+    <link rel="stylesheet" href="./CSS/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .blog-hero {
+            padding: 160px 0 100px;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            text-align: center;
+        }
+        .featured-post {
+            background: white;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            margin: 60px 0;
+            transition: var(--transition);
+        }
+        .featured-post:hover {
+            transform: translateY(-8px);
+        }
+        .featured-img {
+            height: 380px;
+            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1639762681485-8b9d4d4c0d0f?w=1200');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: flex-end;
+            padding: 40px;
+            color: white;
+        }
+        .featured-content {
+            padding: 40px;
+        }
+        .blog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            margin: 80px 0 40px;
+        }
+        .blog-card {
+            background: white;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+        .blog-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-lg);
+        }
+        .blog-img {
+            height: 220px;
+            background-size: cover;
+            background-position: center;
+        }
+        .blog-content {
+            padding: 25px;
+        }
+        .blog-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-bottom: 12px;
+        }
+        .blog-tags {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        .tag {
+            background: rgba(37,99,235,0.1);
+            color: var(--primary-color);
+            padding: 5px 14px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="index.html" class="logo">
+                <i class="fas fa-rocket"></i>
+                <span>Horizon Crypto</span>
+            </a>
+            <ul class="nav-menu">
+                <li><a href="index.html#home">Home</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="blog.html" class="active">Blog</a></li>
+                <li><a href="index.html#markets">Markets</a></li>
+                <li><a href="support.html">Support</a></li>
+            </ul>
+            <div class="nav-buttons">
+                <a href="login.html" class="btn btn-outline">Login</a>
+                <a href="signup.html" class="btn btn-primary">Sign Up</a>
+            </div>
+            <div class="hamburger" id="hamburger">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+    </nav>
+
+    <section class="blog-hero">
+        <div class="container">
+            <h1>Horizon Crypto Insights</h1>
+            <p style="font-size: 1.3rem; max-width: 720px; margin: 1.5rem auto; color: var(--text-light);">
+                Market analysis, trading strategies, blockchain education, and the latest news in digital assets.
+            </p>
+        </div>
+    </section>
+
+    <div class="container">
+
+        <!-- Featured Post -->
+        <article class="featured-post">
+            <div class="featured-img">
+                <div>
+                    <span class="tag">Market Analysis</span>
+                    <h2 style="font-size: 2.4rem; margin: 12px 0 8px;">Bitcoin Halving 2028: What History Tells Us About the Next Cycle</h2>
+                    <p style="font-size: 1.1rem; opacity: 0.95;">Examining past halvings and realistic price scenarios for the post-2028 environment</p>
+                </div>
+            </div>
+            <div class="featured-content">
+                <div class="blog-meta">
+                    <span><i class="far fa-calendar-alt"></i> March 4, 2026</span>
+                    <span><i class="far fa-clock"></i> 12 min read</span>
+                </div>
+                <p>With the 2024 halving now behind us, attention is turning toward the 2028 event. This deep-dive compares supply shock patterns, miner behavior, institutional flows, and macro conditions across cycles...</p>
+                <a href="#" class="btn btn-outline" style="margin-top: 20px;">Read Full Article</a>
+            </div>
+        </article>
+
+        <div class="blog-grid">
+            <article class="blog-card">
+                <div class="blog-img" style="background-image: url('https://images.unsplash.com/photo-1621504450181-5a8c0a0c8f0f?w=800');"></div>
+                <div class="blog-content">
+                    <div class="blog-meta">
+                        <span>Trading</span>
+                        <span>Mar 8, 2026</span>
+                    </div>
+                    <h3>Advanced DeFi Yield Farming Strategies in 2026</h3>
+                    <p>Layer-2 solutions, restaking, and automated compounding — what's actually working right now.</p>
+                    <div class="blog-tags">
+                        <span class="tag">DeFi</span>
+                        <span class="tag">Yield</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="blog-card">
+                <div class="blog-img" style="background-image: url('https://images.unsplash.com/photo-1639762681055-57d12e6e5e8e?w=800');"></div>
+                <div class="blog-content">
+                    <div class="blog-meta">
+                        <span>Regulation</span>
+                        <span>Mar 2, 2026</span>
+                    </div>
+                    <h3>MiCA 2.0: What European Crypto Businesses Need to Know</h3>
+                    <p>Key changes coming in 2026–2027 and how they affect stablecoins, custody, and trading venues.</p>
+                    <div class="blog-tags">
+                        <span class="tag">EU</span>
+                        <span class="tag">Compliance</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="blog-card">
+                <div class="blog-img" style="background-image: url('https://images.unsplash.com/photo-1639762681485-8b9d4d4c0d0f?w=800');"></div>
+                <div class="blog-content">
+                    <div class="blog-meta">
+                        <span>Education</span>
+                        <span>Feb 25, 2026</span>
+                    </div>
+                    <h3>Understanding Liquid Restaking Tokens (LRTs)</h3>
+                    <p>How they differ from traditional staking, risks involved, and top protocols in 2026.</p>
+                    <div class="blog-tags">
+                        <span class="tag">Staking</span>
+                        <span class="tag">Ethereum</span>
+                    </div>
+                </div>
+            </article>
+        </div>
+
+        <div style="text-align: center; margin: 60px 0;">
+            <a href="#" class="btn btn-primary btn-large">Load More Articles</a>
+        </div>
+
+    </div>
+
+    <!-- CTA -->
+    <section class="cta" style="padding: 120px 0;">
+        <div class="container cta-container">
+            <div class="cta-content">
+                <h2>Stay Ahead of the Market</h2>
+                <p>Get expert analysis and trading insights delivered to your inbox.</p>
+                <a href="#" class="btn btn-primary btn-large">Subscribe to Newsletter</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <!-- Paste your footer content from index.html here -->
+    </footer>
+
+    <script src="./JAVASCRIPT/main.js"></script>
+</body>
+</html>

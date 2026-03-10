@@ -81,6 +81,7 @@ async function initAdminDashboard() {
     setupRequestsSections(supabase);
     setupSettingsSection();
     setupModals(supabase);
+    setupUserDetailModal();
     updateAdminTime();
     setInterval(updateAdminTime, 1000);
     initAdminSupportChat();
@@ -118,6 +119,29 @@ function activateDashboardSection() {
       .forEach((nav) => nav.classList.remove("active"));
     firstNavItem.classList.add("active");
   }
+}
+
+// Add inside setupModals(supabase) function, or at the end of initAdminDashboard()
+function setupUserDetailModal() {
+  const modal = document.getElementById("user-detail-modal");
+  if (!modal) return;
+
+  // Close with × button
+  modal.querySelector(".modal-close-btn").addEventListener("click", () => {
+    modal.classList.remove("active");
+  });
+
+  // Close with footer button
+  document.getElementById("close-user-modal").addEventListener("click", () => {
+    modal.classList.remove("active");
+  });
+
+  // Close when clicking outside content
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      modal.classList.remove("active");
+    }
+  });
 }
 
 // Load all data from Supabase
@@ -405,60 +429,85 @@ function setupUsersSection() {
     });
 }
 
-function loadUsersTable(search = "") {
-  const container = document.getElementById("users-table-body");
-  if (!container) return;
+function loadUsersTable(searchTerm = "") {
+  const tbody = document.getElementById("users-table-body");
+  if (!tbody) return;
 
-  let filtered = adminData.users;
+  tbody.innerHTML = "";
 
-  if (search) {
-    filtered = adminData.users.filter(
-      (user) =>
-        (user.first_name + " " + user.last_name)
-          .toLowerCase()
-          .includes(search) ||
-        user.email.toLowerCase().includes(search) ||
-        user.user_id.toLowerCase().includes(search),
+  let filteredUsers = adminData.users;
+  if (searchTerm) {
+    const term = searchTerm.toLowerCase();
+    filteredUsers = adminData.users.filter(
+      (u) =>
+        u.first_name?.toLowerCase().includes(term) ||
+        u.last_name?.toLowerCase().includes(term) ||
+        u.email?.toLowerCase().includes(term) ||
+        u.user_id?.toLowerCase().includes(term),
     );
   }
 
-  if (filtered.length === 0) {
-    container.innerHTML =
-      '<tr><td colspan="7" class="no-data">No users found</td></tr>';
+  filteredUsers.forEach((user) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+            <td>${user.user_id || "—"}</td>
+            <td>${user.first_name || ""} ${user.last_name || ""}</td>
+            <td>${user.email || "—"}</td>
+            <td>${formatCurrency(user.balance || 0)}</td>
+            <td>
+                <span class="status-badge ${user.status === "active" ? "success" : "danger "}">
+                    ${user.status || "unknown"}
+                </span>
+            </td>
+            <td>${formatDate(user.join_date || user.created_at)}</td>
+            <td>
+                <div class="table-actions">
+                    <button class="btn-icon btn-view" 
+                            title="View full details"
+                            onclick="showUserDetailModal('${user.user_id}')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <!-- You can keep or add edit/suspend buttons later -->
+                    <!-- <button class="btn-icon btn-edit"><i class="fas fa-edit"></i></button> -->
+                </div>
+            </td>
+        `;
+    tbody.appendChild(row);
+  });
+}
+
+window.showUserDetailModal = function (userId) {
+  const user = adminData.users.find((u) => u.user_id === userId);
+  if (!user) {
+    showAdminNotification("User not found", "error");
     return;
   }
 
-  container.innerHTML = filtered
-    .map(
-      (user) => `
-        <tr>
-            <td>${user.user_id.substring(0, 8)}...</td>
-            <td>${user.first_name} ${user.last_name}</td>
-            <td>${user.email}</td>
-            <td>${formatCurrency(user.balance || 0)}</td>
-            <td><span class="user-status ${user.status || "active"}">${
-              user.status || "active"
-            }</span></td>
-            <td>${formatDate(user.join_date)}</td>
-            <td>
-                <div class="action-buttons">
-                    <button class="btn-action view" onclick="viewUserDetails('${
-                      user.user_id
-                    }')">
-                        <i class="fas fa-eye"></i> View
-                    </button>
-                    <button class="btn-action edit" onclick="editUser('${
-                      user.user_id
-                    }')">
-                        <i class="fas fa-edit"></i> Edit
-                    </button>
-                </div>
-            </td>
-        </tr>
-    `,
-    )
-    .join("");
-}
+  // Fill modal fields
+  document.getElementById("modal-fullname").textContent =
+    `${user.first_name || ""} ${user.last_name || ""}`.trim() || "—";
+
+  document.getElementById("modal-userid").textContent = user.user_id || "—";
+  document.getElementById("modal-email").textContent = user.email || "—";
+  document.getElementById("modal-phone").textContent =
+    user.phone || "Not provided";
+  document.getElementById("modal-status").textContent =
+    user.status || "unknown";
+  document.getElementById("modal-joined").textContent = formatDate(
+    user.join_date || user.created_at,
+  );
+  document.getElementById("modal-balance").textContent = formatCurrency(
+    user.balance || 0,
+  );
+  document.getElementById("modal-address").textContent =
+    user.address || "Not provided";
+
+  // Show modal
+  const modal = document.getElementById("user-detail-modal");
+  if (modal) {
+    modal.classList.add("active");
+  }
+};
 
 // ─────────────────────────────────────────────
 // ADMIN SUPPORT CHAT
@@ -466,6 +515,12 @@ function loadUsersTable(search = "") {
 
 let currentAdminConversation = null;
 let adminChatSubscription = null;
+let adminChatChannels = {}; // To manage multiple subscriptions
+let selectedUserId = null;
+
+function getAdminConversationId(userId) {
+  return userId; // Same as user side, use user UUID as conversation_id
+}
 
 async function initAdminSupportChat() {
   const section = document.getElementById("support-chat-section");
@@ -553,11 +608,13 @@ async function initAdminSupportChat() {
                     <div class="info">
                         <p class="name">${userId.substring(0, 12)}${userId.length > 12 ? "..." : ""}</p>
                         <p class="preview">${conv.lastMessage.substring(0, 40)}${conv.lastMessage.length > 40 ? "..." : ""}</p>
+                       
                     </div>
                     <div style="margin-left:auto; text-align:right;">
                         <div class="time">${time}</div>
                         ${conv.unread > 0 ? `<div class="unread">${conv.unread}</div>` : ""}
                     </div>
+                      
                 `;
 
         item.addEventListener("click", () => {
@@ -657,71 +714,112 @@ async function initAdminSupportChat() {
     }
   }
 
-
-
   // ── Real-time ────────────────────────────────────────────────────
 
-function subscribeAdminChat() {
+  function subscribeAdminChat() {
     // Remove old subscription if exists
     if (adminChatSubscription) {
-        supabase.removeChannel(adminChatSubscription);
+      supabase.removeChannel(adminChatSubscription);
     }
 
     // Global channel for ALL new support messages (not filtered by conversation)
-    adminChatSubscription = supabase.channel('admin-support-notifications')
+    adminChatSubscription = supabase
+      .channel("admin-support-notifications")
 
-        // New message anywhere → refresh list of conversations
-        .on('postgres_changes', {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'support_messages',
-            filter: "sender_id!admin"   // only user messages trigger
-        }, (payload) => {
-            console.log('→ New user message detected', payload.new);
-            loadConversations();                // refresh left sidebar list
-            if (currentAdminConversation === payload.new.conversation_id) {
-                appendAdminMessage(payload.new); // append to open chat
-            }
-            updateAdminUnreadBadge();
+      // New message anywhere → refresh list of conversations
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "support_messages",
+          filter: "sender_id!admin", // only user messages trigger
+        },
+        (payload) => {
+          console.log("→ New user message detected", payload.new);
+          loadConversations(); // refresh left sidebar list
+          if (currentAdminConversation === payload.new.conversation_id) {
+            appendAdminMessage(payload.new); // append to open chat
+          }
+          updateAdminUnreadBadge();
+        },
+      )
+
+      // Also listen for read receipt updates if you implement them
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "support_messages",
+        },
+        (payload) => {
+          if (currentAdminConversation === payload.new.conversation_id) {
+            refreshReadStatus(); // optional
+          }
+        },
+      )
+
+      .subscribe((status) => {
+        console.log("[Admin Realtime] Status:", status);
+        if (status === "SUBSCRIBED") {
+          console.log("Admin realtime ready");
+        }
+      });
+  }
+
+  // Helper: append single message without full reload
+  function appendAdminMessage(
+    content,
+    isFromAdmin,
+    timestamp = null,
+    isRead = true,
+  ) {
+    const container = document.getElementById("admin-chat-messages"); // Assume ID in admin.html
+    if (!container) return;
+
+    const msgDiv = document.createElement("div");
+    msgDiv.className = `chat-message ${isFromAdmin ? "admin-message" : "user-message"}`; // Admin right, user left
+
+    const time = timestamp
+      ? new Date(timestamp).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
         })
-
-        // Also listen for read receipt updates if you implement them
-        .on('postgres_changes', {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'support_messages'
-        }, (payload) => {
-            if (currentAdminConversation === payload.new.conversation_id) {
-                refreshReadStatus(); // optional
-            }
-        })
-
-        .subscribe((status) => {
-            console.log('[Admin Realtime] Status:', status);
-            if (status === 'SUBSCRIBED') {
-                console.log('Admin realtime ready');
-            }
+      : new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
         });
-}
 
-// Helper: append single message without full reload
-function appendAdminMessage(msg) {
-    if (!msg) return;
-
-    const isFromUser = msg.sender_id !== 'admin';
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${isFromUser ? 'user' : 'admin'}`;
-    messageDiv.innerHTML = `
-        ${msg.content}
-        <span class="message-time">
-            ${new Date(msg.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
-        </span>
+    msgDiv.innerHTML = `
+        <div class="message-bubble">
+            <p>${content}</p>
+            <div class="message-meta">
+                <span class="message-time">${time}</span>
+                ${isFromAdmin ? `<span class="message-status">${isRead ? "Seen" : "Sent"}</span>` : ""}
+            </div>
+        </div>
     `;
-    
-    document.getElementById('admin-chat-messages').appendChild(messageDiv);
-    document.getElementById('admin-chat-messages').scrollTop = 
-        document.getElementById('admin-chat-messages').scrollHeight;
-}
+
+    container.appendChild(msgDiv);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  async function updateAdminUnreadBadge() {
+    const { count } = await supabase
+      .from("support_messages")
+      .select("*", { count: "exact", head: true })
+      .eq("is_read", false)
+      .neq("sender_id", "admin");
+
+    const badge = document.getElementById("admin-unread-chats");
+    if (count > 0) {
+      badge.textContent = count;
+      badge.style.display = "inline-flex";
+    } else {
+      badge.style.display = "none";
+    }
+  }
 
   // ── Event listeners ──────────────────────────────────────────────
   sendBtn.addEventListener("click", sendAdminReply, updateAdminUnreadBadge);
@@ -751,7 +849,7 @@ function appendAdminMessage(msg) {
     if (section.classList.contains("active")) {
       loadConversations();
       subscribeAdminChat();
-      updateAdminUnreadBadge()
+      updateAdminUnreadBadge();
     }
   });
 
@@ -768,21 +866,9 @@ function appendAdminMessage(msg) {
   }
 }
 
-  async function updateAdminUnreadBadge() {
-    const { count } = await supabase
-      .from("support_messages")
-      .select("*", { count: "exact", head: true })
-      .eq("is_read", false)
-      .neq("sender_id", "admin");
 
-    const badge = document.getElementById("admin-unread-chats");
-    if (count > 0) {
-      badge.textContent = count;
-      badge.style.display = "inline-flex";
-    } else {
-      badge.style.display = "none";
-    }
-  }
+
+
 
 // PAYMENT METHODS SECTION
 function setupPaymentsSection(supabase) {

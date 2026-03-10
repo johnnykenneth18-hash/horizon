@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support & Help Center - Horizon Crypto</title>
+    <link rel="stylesheet" href="./CSS/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .support-hero {
+            padding: 160px 0 80px;
+            background: linear-gradient(135deg, #f0f9ff 0%, #fef2f2 100%);
+            text-align: center;
+        }
+        .search-box {
+            max-width: 680px;
+            margin: 40px auto 80px;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 18px 24px 18px 60px;
+            font-size: 1.1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 50px;
+            box-shadow: var(--shadow);
+        }
+        .search-box i {
+            position: absolute;
+            left: 24px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.4rem;
+            color: var(--text-light);
+        }
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 60px 0;
+        }
+        .category-card {
+            background: white;
+            padding: 40px 30px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            text-align: center;
+        }
+        .category-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
+        }
+        .category-icon {
+            font-size: 3.2rem;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+        .faq-item {
+            background: white;
+            border-radius: var(--radius);
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+        .faq-question {
+            padding: 20px 30px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-light);
+        }
+        .faq-answer {
+            padding: 0 30px 25px;
+            display: none;
+            color: var(--text-color);
+            line-height: 1.7;
+        }
+        .faq-answer.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation (update active link to support) -->
+    <nav class="navbar"><div class="container nav-container">
+            <a href="index.html" class="logo">
+                <i class="fas fa-rocket"></i>
+                <span>Horizon Crypto</span>
+            </a>
+            <ul class="nav-menu">
+                <li><a href="index.html#home">Home</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="blog.html" class="active">Blog</a></li>
+                <li><a href="index.html#markets">Markets</a></li>
+                <li><a href="support.html">Support</a></li>
+            </ul>
+            <div class="nav-buttons">
+                <a href="login.html" class="btn btn-outline">Login</a>
+                <a href="signup.html" class="btn btn-primary">Sign Up</a>
+            </div>
+            <div class="hamburger" id="hamburger">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+    </nav>
+
+    <section class="support-hero">
+        <div class="container">
+            <h1>How can we help you?</h1>
+            <p style="font-size: 1.25rem; max-width: 680px; margin: 1.2rem auto; color: var(--text-light);">
+                Search our help center or browse popular topics
+            </p>
+
+            <div class="search-box position-relative">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search for articles, FAQs, guides...">
+            </div>
+        </div>
+    </section>
+
+    <div class="container">
+
+        <div class="categories-grid">
+            <div class="category-card">
+                <div class="category-icon"><i class="fas fa-user-lock"></i></div>
+                <h3>Account & Security</h3>
+                <p>Login issues, 2FA, password reset, account verification</p>
+            </div>
+            <div class="category-card">
+                <div class="category-icon"><i class="fas fa-wallet"></i></div>
+                <h3>Deposits & Withdrawals</h3>
+                <p>Bank transfers, crypto deposits, withdrawal limits & delays</p>
+            </div>
+            <div class="category-card">
+                <div class="category-icon"><i class="fas fa-chart-line"></i></div>
+                <h3>Trading & Markets</h3>
+                <p>Order types, margin trading, fees, market data</p>
+            </div>
+            <div class="category-card">
+                <div class="category-icon"><i class="fas fa-shield-alt"></i></div>
+                <h3>Security & Compliance</h3>
+                <p>KYC/AML, suspicious activity, frozen accounts</p>
+            </div>
+        </div>
+
+        <h2 style="text-align: center; margin: 90px 0 50px; color: var(--secondary-color);">Popular Questions</h2>
+
+        <div class="faq">
+            <div class="faq-item">
+                <div class="faq-question">
+                    How long do crypto withdrawals take?
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>Most cryptocurrency withdrawals are processed within 10–40 minutes depending on network congestion. Bitcoin may take longer during high-fee periods. Fiat withdrawals via bank transfer usually take 1–3 business days.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">
+                    I forgot my password — how do I reset it?
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>Click "Forgot Password" on the login page. You'll receive a secure reset link. If you also have 2FA enabled, you'll need access to your authenticator app or backup codes.</p>
+                </div>
+            </div>
+
+            <!-- Add 4–6 more FAQ items following the same pattern -->
+        </div>
+
+        <div style="text-align: center; margin: 80px 0 40px;">
+            <p style="font-size: 1.1rem; margin-bottom: 25px;">Still need help?</p>
+            <a href="mailto:support@horizoncrypto.com" class="btn btn-primary btn-large">
+                <i class="fas fa-envelope"></i> Contact Support
+            </a>
+        </div>
+
+    </div>
+
+    <!-- CTA & Footer same as previous pages -->
+    
+
+    <script>
+        // Simple FAQ accordion
+        document.querySelectorAll('.faq-question').forEach(q => {
+            q.addEventListener('click', () => {
+                const answer = q.nextElementSibling;
+                answer.classList.toggle('active');
+                q.querySelector('i').classList.toggle('fa-chevron-down');
+                q.querySelector('i').classList.toggle('fa-chevron-up');
+            });
+        });
+    </script>
+</body>
+</html>
+
