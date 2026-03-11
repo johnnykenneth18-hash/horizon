@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>Horizon Crypto · official certificates</title>
+    <!-- same refined font stack -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome 6 (clean icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #f4f7fb;
+            --surface: #ffffff;
+            --primary: #0b1e33;        /* deep navy – mature */
+            --primary-light: #1e3a5f;
+            --accent: #2b6c8f;          /* subtle teal-blue */
+            --accent-soft: #eaf1f9;
+            --text-primary: #1f2a3a;
+            --text-secondary: #3e4b5c;
+            --text-muted: #5f728b;
+            --border-light: #e0e7f0;
+            --card-shadow: 0 20px 35px -12px rgba(0,30,50,0.15);
+            --gold: #b89b6e;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 30px;
+        }
+
+        /* header / nav – subtle, stays in background */
+        .cert-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 24px 0 16px;
+            border-bottom: 1px solid var(--border-light);
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            font-size: 1.8rem;
+            color: var(--primary);
+            text-decoration: none;
+        }
+        .logo i {
+            color: var(--accent);
+            font-size: 2.2rem;
+        }
+
+        .back-link a {
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            background: var(--surface);
+            border-radius: 60px;
+            border: 1px solid var(--border-light);
+            transition: 0.2s;
+            font-size: 0.95rem;
+        }
+        .back-link a:hover {
+            background: var(--accent-soft);
+            border-color: var(--accent);
+            color: var(--primary);
+        }
+
+        /* page heading */
+        .page-header {
+            text-align: center;
+            margin: 40px 0 30px;
+        }
+        .page-header h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.8rem;
+            font-weight: 600;
+            color: var(--primary);
+            letter-spacing: -0.02em;
+        }
+        .page-header p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 650px;
+            margin: 16px auto 0;
+        }
+
+        /* certificate grid – two columns, elegant spacing */
+        .cert-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+            margin: 50px 0 80px;
+        }
+
+        /* individual certificate card – museum quality */
+        .cert-card {
+            background: var(--surface);
+            border-radius: 32px;
+            box-shadow: var(--card-shadow);
+            padding: 30px 30px 40px 30px;
+            border: 1px solid rgba(255,255,255,0.6);
+            transition: transform 0.25s ease, box-shadow 0.3s;
+            display: flex;
+            flex-direction: column;
+        }
+        .cert-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 30px 45px -12px rgba(11,30,51,0.25);
+        }
+
+        /* decorative top line / badge */
+        .cert-badge {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border-light);
+            padding-bottom: 18px;
+        }
+        .cert-badge-icon {
+            background: var(--accent-soft);
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent);
+            font-size: 1.6rem;
+        }
+        .cert-badge-text {
+            font-weight: 600;
+            font-size: 1.3rem;
+            color: var(--primary);
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .cert-badge-text small {
+            display: block;
+            font-weight: 400;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* image area – your raw image will go here */
+        .cert-image-frame {
+            background: #faf9f7;
+            border-radius: 24px;
+            padding: 24px 24px 18px 24px;
+            border: 1px solid #e8e2d4;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.02);
+            margin-bottom: 20px;
+            text-align: center;
+            transition: background 0.2s;
+        }
+
+        /* this is where you'll insert your <img> with actual src */
+        .cert-image-frame img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+            border: 1px solid #ddd6c8;
+            transition: 0.2s;
+        }
+
+        /* fallback style if image is missing (just shows icon) – you can remove once linked */
+        .cert-image-frame .img-placeholder {
+            font-size: 4rem;
+            color: var(--accent);
+            opacity: 0.4;
+            padding: 30px 0;
+        }
+
+        .cert-meta {
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            border-top: 1px dashed var(--border-light);
+            padding-top: 18px;
+        }
+        .cert-meta .cert-id {
+            font-family: monospace;
+            background: var(--accent-soft);
+            padding: 5px 12px;
+            border-radius: 60px;
+            color: var(--primary);
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+        .cert-meta i {
+            color: var(--gold);
+            margin-right: 5px;
+        }
+
+        .cert-footer-note {
+            margin-top: 16px;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .cert-footer-note i {
+            color: var(--accent);
+            font-size: 1rem;
+        }
+
+        /* responsive: stack on mobile */
+        @media (max-width: 800px) {
+            .cert-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            .page-header h1 {
+                font-size: 2.2rem;
+            }
+            .cert-nav {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        /* subtle seal watermark */
+        .cert-seal {
+            text-align: right;
+            font-family: 'Times New Roman', serif;
+            color: var(--gold);
+            opacity: 0.7;
+            font-size: 0.9rem;
+            margin-top: 8px;
+        }
+
+        /* extra polish */
+        hr {
+            border: none;
+            border-top: 1px solid var(--border-light);
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- simple navigation (keeps context) -->
+    <div class="container">
+        <div class="cert-nav">
+            <a href="index.html" class="logo">
+                <i class="fas fa-rocket"></i>
+                <span>Horizon Crypto</span>
+            </a>
+            <!--<div class="back-link">
+                <a href="about.html"><i class="fas fa-arrow-left"></i> back to about us</a>
+            </div>-->
+        </div>
+    </div>
+
+    <!-- page introduction -->
+    <div class="container">
+        <div class="page-header">
+            <h1>Certificates of Incorporation</h1>
+            <p>Official legal documents · issued by regulatory authorities · verified originals</p>
+        </div>
+    </div>
+
+    <!-- CERTIFICATE GALLERY – TWO CERTIFICATES SIDE BY SIDE (image src ready) -->
+    <div class="container">
+        <div class="cert-grid">
+            
+            <!-- certificate 1 – Australia (as per australiaIncoporation.jpg) -->
+            <div class="cert-card">
+                <div class="cert-badge">
+                    <div class="cert-badge-icon"><i class="fas fa-scroll"></i></div>
+                    <div class="cert-badge-text">Australian registration <small>ASIC · 2021</small></div>
+                </div>
+
+                <!-- ****************** IMAGE PLACEHOLDER 1 ****************** -->
+                <!-- REPLACE THE src="..." WITH YOUR RAW IMAGE LINK (AUSTRALIA) -->
+                <div class="cert-image-frame">
+                    <img src="./australiaIncoporation.jpg" 
+                         alt="Australian Certificate of Incorporation – Horizon Crypto"
+                         loading="lazy"
+                         style="width:100%; max-width:600px; background:#fff;">
+                    <!-- instruction: replace the above src with your australia certificate image URL.
+                         example: <img src="https://yourdomain.com/images/australiaIncoporation.jpg" ...> -->
+                </div>
+                <!-- ********************************************************* -->
+
+                <div class="cert-meta">
+                    <span><i class="far fa-file-alt"></i> ACN 201 389 163</span>
+                    <span class="cert-id">#ZU138916</span>
+                </div>
+                <div class="cert-footer-note">
+                    <i class="fas fa-check-circle" style="color:#2b6c8f;"></i> Issued by Australian Securities & Investments Commission
+                </div>
+                <div class="cert-seal">
+                    <i class="fas fa-certificate"></i> certified copy
+                </div>
+            </div>
+
+            <!-- certificate 2 – second incorporation (e.g. Switzerland / UK / other) -->
+            <div class="cert-card">
+                <div class="cert-badge">
+                    <div class="cert-badge-icon"><i class="fas fa-landmark"></i></div>
+                    <div class="cert-badge-text">Swiss charter <small>FINMA · 2021</small></div>
+                </div>
+
+                <!-- ****************** IMAGE PLACEHOLDER 2 ****************** -->
+                <!-- REPLACE THE src="..." WITH YOUR SECOND CERTIFICATE RAW IMAGE -->
+                <div class="cert-image-frame">
+                    <img src="./swissIncoporation.jpg" 
+                         alt="Swiss Certificate of Incorporation – Horizon Crypto"
+                         loading="lazy"
+                         style="width:100%; max-width:600px; background:#fff;">
+                    <!-- instruction: replace the above src with your second certificate (e.g. switzerland, brazil, england) -->
+                </div>
+                <!-- ********************************************************* -->
+
+                <div class="cert-meta">
+                    <span><i class="far fa-file-alt"></i> FINMA #CH-660.2.126.987-2</span>
+                    <span class="cert-id">DLT licence</span>
+                </div>
+                <div class="cert-footer-note">
+                    <i class="fas fa-check-circle" style="color:#2b6c8f;"></i> Swiss Financial Market Supervisory Authority
+                </div>
+                <div class="cert-seal">
+                    <i class="fas fa-certificate"></i> official seal
+                </div>
+            </div>
+        </div>
+
+        <!-- additional description line (optional, adds maturity) -->
+        <div style="text-align: center; margin: 40px 0 60px; color: var(--text-muted); border-top: 1px solid var(--border-light); padding-top: 30px;">
+            <i class="fas fa-shield-alt" style="margin-right: 8px; color: var(--accent);"></i> 
+            Both certificates are legally registered and available for public verification. Horizon Crypto operates under strict compliance.
+        </div>
+    </div>
+
+    <!-- simple footer (clean, no overload) -->
+    <div style="background: var(--primary); color: #b4c9de; padding: 40px 0;">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+            <span style="font-size: 0.9rem;">© 2023 Horizon Crypto Ltd. — incorporation certificates gallery</span>
+            <span style="display: flex; gap: 24px;">
+                <a href="aboutUs.html" style="color: #b4c9de; text-decoration: none;">About</a>
+                <a href="terms-of-service.html" style="color: #b4c9de; text-decoration: none;">Terms</a>
+                <a href="privacy-policy.html" style="color: #b4c9de; text-decoration: none;">Privacy</a>
+            </span>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const hamburger = document.getElementById('hamburger');
+            const navMenu = document.querySelector('.nav-menu');
+            if (hamburger && navMenu) {
+                hamburger.addEventListener('click', () => {
+                    navMenu.style.display = (navMenu.style.display === 'flex') ? 'none' : 'flex';
+                    if (navMenu.style.display === 'flex') {
+                        navMenu.style.flexDirection = 'column';
+                        navMenu.style.position = 'absolute';
+                        navMenu.style.top = '70px';
+                        navMenu.style.left = '0';
+                        navMenu.style.width = '100%';
+                        navMenu.style.background = 'white';
+                        navMenu.style.padding = '30px';
+                        navMenu.style.boxShadow = 'var(--card-shadow)';
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

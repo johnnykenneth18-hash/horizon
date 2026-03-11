@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Horizon Crypto · risk disclosure</title>
+    <!-- consistent font stack & icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #f6f9fc;
+            --surface: #ffffff;
+            --primary: #0b1e33;
+            /* deep navy – authoritative */
+            --primary-light: #1e3a5f;
+            --accent: #2b6c8f;
+            /* steady teal-blue */
+            --accent-soft: #e5f0f7;
+            --text-primary: #1f2a3a;
+            --text-secondary: #3e4b5c;
+            --text-muted: #5f728b;
+            --border-light: #dde5ed;
+            --card-shadow: 0 15px 30px -10px rgba(0, 30, 50, 0.1);
+            --warning-bg: #fff6e9;
+            --warning-border: #e6d5b8;
+            --important: #b3593c;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 32px;
+        }
+
+        /* navigation – consistent with other pages */
+        .risk-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 24px 0 20px;
+            border-bottom: 1px solid var(--border-light);
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 18px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            font-size: 1.8rem;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .logo i {
+            color: var(--accent);
+            font-size: 2.2rem;
+        }
+
+        .back-link a {
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: var(--surface);
+            border-radius: 60px;
+            border: 1px solid var(--border-light);
+            transition: 0.2s;
+            font-size: 0.95rem;
+        }
+
+        .back-link a:hover {
+            background: var(--accent-soft);
+            border-color: var(--accent);
+            color: var(--primary);
+        }
+
+        /* page header */
+        .page-header {
+            text-align: center;
+            margin: 30px 0 40px;
+        }
+
+        .page-header h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 3rem;
+            font-weight: 600;
+            color: var(--primary);
+            letter-spacing: -0.02em;
+        }
+
+        .page-header p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 800px;
+            margin: 16px auto 0;
+        }
+
+        /* last updated badge */
+        .last-updated {
+            display: inline-block;
+            background: var(--surface);
+            border-radius: 60px;
+            padding: 8px 28px;
+            border: 1px solid var(--border-light);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 30px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .last-updated i {
+            color: var(--accent);
+            margin-right: 8px;
+        }
+
+        /* main content card – clean, serious */
+        .disclosure-card {
+            background: var(--surface);
+            border-radius: 36px;
+            box-shadow: var(--card-shadow);
+            padding: 48px 48px;
+            margin: 40px 0 60px;
+            border: 1px solid #ffffff;
+        }
+
+        /* section styling */
+        .risk-section {
+            margin-bottom: 48px;
+            scroll-margin-top: 100px;
+        }
+
+        .risk-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border-light);
+            padding-bottom: 16px;
+        }
+
+        .section-title i {
+            font-size: 2rem;
+            color: var(--accent);
+            background: var(--accent-soft);
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .section-title h2 {
+            font-size: 1.9rem;
+            font-weight: 600;
+            font-family: 'Space Grotesk', sans-serif;
+            color: var(--primary);
+        }
+
+        .risk-list {
+            list-style: none;
+            padding-left: 24px;
+        }
+
+        .risk-list li {
+            margin-bottom: 18px;
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+        }
+
+        .risk-list li i {
+            color: var(--accent);
+            font-size: 1.2rem;
+            margin-top: 4px;
+            min-width: 24px;
+        }
+
+        .risk-list li strong {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .warning-box {
+            background: var(--warning-bg);
+            border-left: 5px solid var(--important);
+            padding: 28px 32px;
+            border-radius: 28px;
+            margin: 36px 0 24px;
+            border: 1px solid var(--warning-border);
+        }
+
+        .warning-box h3 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--important);
+            margin-bottom: 16px;
+        }
+
+        .warning-box p {
+            color: var(--text-primary);
+        }
+
+        .legal-footnotes {
+            background: #f7f9fc;
+            border-radius: 28px;
+            padding: 28px 32px;
+            margin-top: 40px;
+            border: 1px solid var(--border-light);
+        }
+
+        .legal-footnotes p {
+            margin-bottom: 16px;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        hr {
+            border: none;
+            border-top: 2px solid var(--border-light);
+            margin: 32px 0;
+        }
+
+        /* footer */
+        .legal-footer {
+            background: var(--primary);
+            color: #b4c9de;
+            padding: 40px 0;
+            margin-top: 40px;
+        }
+
+        .legal-footer .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .legal-footer a {
+            color: #b4c9de;
+            text-decoration: none;
+            margin-left: 24px;
+            transition: color 0.2s;
+        }
+
+        .legal-footer a:hover {
+            color: white;
+        }
+
+        /* responsive */
+        @media (max-width: 700px) {
+            .disclosure-card {
+                padding: 32px 24px;
+            }
+
+            .page-header h1 {
+                font-size: 2.4rem;
+            }
+
+            .section-title h2 {
+                font-size: 1.5rem;
+            }
+
+            .risk-nav {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- consistent navigation -->
+    <div class="container">
+        <div class="risk-nav">
+            <a href="index.html" class="logo">
+                <i class="fas fa-rocket"></i>
+                <span>Horizon Crypto</span>
+            </a>
+            <!--<div class="back-link">
+                <a href="about.html"><i class="fas fa-arrow-left"></i> back to about us</a>
+            </div>-->
+        </div>
+    </div>
+
+    <!-- page header -->
+    <div class="container">
+        <div class="page-header">
+            <h1>Risk disclosure</h1>
+            <p>Important information about the risks associated with digital asset investment. Please read carefully
+                before investing.</p>
+        </div>
+        <div style="text-align: center;">
+            <span class="last-updated"><i class="far fa-calendar-alt"></i> last updated: 15 march 2025</span>
+        </div>
+    </div>
+
+    <!-- main disclosure content -->
+    <div class="container">
+        <div class="disclosure-card">
+
+            <!-- general warning / summary -->
+            <div class="warning-box">
+                <h3><i class="fas fa-exclamation-triangle"></i>高风险投资警告</h3>
+                <p>Cryptocurrency and digital asset investments carry a high level of risk and may not be suitable for
+                    all investors. You could lose all or a substantial portion of your capital. Horizon Crypto strongly
+                    advises you to read this entire disclosure and consult with independent financial advisors before
+                    committing funds.</p>
+            </div>
+
+            <!-- 1. market risk -->
+            <div class="risk-section" id="market-risk">
+                <div class="section-title">
+                    <i class="fas fa-chart-line"></i>
+                    <h2>Market volatility risk</h2>
+                </div>
+                <ul class="risk-list">
+                    <li><i class="fas fa-circle" style="font-size: 0.5rem; align-self: center;"></i> <strong>Extreme
+                            price fluctuations:</strong> Digital asset prices can change rapidly and unpredictably,
+                        moving double digits in short periods. Past performance is not indicative of future results.
+                    </li>
+                    <li><i class="fas fa-circle" style="font-size: 0.5rem;"></i> <strong>Market manipulation &
+                            sentiment:</strong> The crypto market is susceptible to social media influence, "whale"
+                        transactions, and unanticipated regulatory news that may cause sudden drops.</li>
+                    <li><i class="fas fa-circle" style="font-size: 0.5rem;"></i> <strong>Liquidity risk:</strong> Some
+                        tokens may become illiquid, making it difficult to exit positions at fair price, especially
+                        during market stress.</li>
+                </ul>
+            </div>
+
+            <!-- 2. regulatory risk -->
+            <div class="risk-section">
+                <div class="section-title">
+                    <i class="fas fa-gavel"></i>
+                    <h2>Regulatory & legal risk</h2>
+                </div>
+                <ul class="risk-list">
+                    <li><i class="fas fa-circle" style="font-size: 0.5rem;"></i> <strong>Changing laws:</strong> The
+                        regulatory landscape for cryptocurrencies is evolving. New laws or interpretations in
+                        jurisdictions where Horizon Crypto operates (Australia, Switzerland, UK, Brazil, etc.) may
+                        adversely affect platform functionality or asset values.</li>
+                    <li><i class="fas fa-circle" style="font-size: 0.5rem;"></i> <strong>Tax treatment:</strong> Gains
+                        from crypto investments may be subject to capital gains tax, VAT, or other levies. Clients are
+                        solely responsible for understanding their tax obligations.</li>
+                    <li><i class="fas fa-circle" style="font-size: 0.5rem;"></i> <strong>Licence conditions:</strong>
+                        While Horizon Crypto holds multiple licences, changes in regulatory requirements could impact
+                        the services we provide.</li>
+                </ul>
+            </div>
+
+            <!-- 3. technology & security risk -->
+            <div class="risk-section">
+                <div class="section-title">
+                    <i class="fas fa-shield-halved"></i>
+                    <h2>Technology & security risks</h2>
+                </div>
+                <ul class="risk-list">
+                    <li><i class="fas fa-circle" style="font-size: 0.5rem;"></i> <strong>Blockchain
+                            vulnerabilities:</strong> Smart contract bugs, consensus attacks (e.g. 51% attacks), or
+                        network forks could lead to loss of funds.</li>
+                    <li><i class="fas fa-circle" style="font-size: 0.5rem;"></i> <strong>Custody & cyber
+                            threats:</strong> Despite industry-leading security measures, no system is immune to
+                        hacking, phishing, or internal breaches. Assets held with Horizon Crypto are not covered by
+                        government insurance schemes (e.g. FDIC).</li>
+                    <li><i class="fas fa-circle" style="font-size: 0.5rem;"></i> <strong>Operational
+                            disruptions:</strong> Technical failures, maintenance, or force majeure events may
+                        temporarily suspend trading or access to funds.</li>
+                </ul>
+            </div>
+
+            <!-- 4. platform-specific risks -->
+            <div class="risk-section">
+                <div class="section-title">
+                    <i class="fas fa-rocket"></i>
+                    <h2>Platform & investment risks</h2>
+                </div>
+                <ul class="risk-list">
+                    <li><i class="fas fa-circle" style="font-size: 0.5rem;"></i> <strong>No guaranteed returns:</strong>
+                        Any projected returns or past performance shown on our marketing materials are for illustration
+                        only. Actual results may differ materially.</li>
+                    <li><i class="fas fa-circle" style="font-size: 0.5rem;"></i> <strong>Leverage / derivatives
+                            risk:</strong> If you use margin or derivative products, losses can exceed deposited
+                        capital. These products are only suitable for experienced investors.</li>
+                    <li><i class="fas fa-circle" style="font-size: 0.5rem;"></i> <strong>Counterparty risk:</strong>
+                        Some strategies may involve third-party custodians or DeFi protocols; failure of those parties
+                        could result in total loss.</li>
+                </ul>
+            </div>
+
+            <!-- 5. additional important -->
+            <div class="risk-section">
+                <div class="section-title">
+                    <i class="fas fa-scale-balanced"></i>
+                    <h2>Client responsibilities</h2>
+                </div>
+                <ul class="risk-list">
+                    <li><i class="fas fa-circle" style="font-size: 0.5rem;"></i> <strong>Independent advice:</strong>
+                        You acknowledge that you have sufficient knowledge and experience to understand the risks, or
+                        you have sought independent advice.</li>
+                    <li><i class="fas fa-circle" style="font-size: 0.5rem;"></i> <strong>Account security:</strong> You
+                        are responsible for maintaining the confidentiality of your login credentials and enabling
+                        two-factor authentication.</li>
+                    <li><i class="fas fa-circle" style="font-size: 0.5rem;"></i> <strong>Tax and legal
+                            compliance:</strong> You bear all responsibility for reporting and paying any taxes due on
+                        your investments.</li>
+                </ul>
+            </div>
+
+            <hr>
+
+            <!-- legal footnotes / formal language -->
+            <div class="legal-footnotes">
+                <p><i class="fas fa-check-circle" style="color: var(--accent); margin-right: 8px;"></i> By using Horizon
+                    Crypto’s services, you confirm that you have read, understood, and accepted these risks. Nothing in
+                    this disclosure constitutes legal, financial, or tax advice.</p>
+                <p><i class="fas fa-file-signature" style="color: var(--accent); margin-right: 8px;"></i> Horizon Crypto
+                    Pty Ltd (ACN 201 389 163) is incorporated in Australia and operates under relevant licences in
+                    multiple jurisdictions. All investments are subject to market risk. Please invest responsibly.</p>
+                <p style="margin-bottom: 0;"><i class="fas fa-globe"
+                        style="color: var(--accent); margin-right: 8px;"></i> This document is without prejudice and may
+                    be updated from time to time. The latest version always prevails.</p>
+            </div>
+        </div>
+
+        <!-- cross-links to other legal docs -->
+        <div style="display: flex; justify-content: center; gap: 40px; margin: 40px 0 60px; flex-wrap: wrap;">
+            <a href="terms-of-service.html"
+                style="color: var(--primary); text-decoration: none; border-bottom: 1px dotted var(--accent); padding-bottom: 4px;"><i
+                    class="fas fa-file-lines"></i> Terms of service</a>
+            <a href="privacy-policy.html"
+                style="color: var(--primary); text-decoration: none; border-bottom: 1px dotted var(--accent); padding-bottom: 4px;"><i
+                    class="fas fa-lock"></i> Privacy policy</a>
+            <a href="incoporationCert.html"
+                style="color: var(--primary); text-decoration: none; border-bottom: 1px dotted var(--accent); padding-bottom: 4px;"><i
+                    class="fas fa-scroll"></i> Incorporation certificates</a>
+            <a href="license.html"
+                style="color: var(--primary); text-decoration: none; border-bottom: 1px dotted var(--accent); padding-bottom: 4px;"><i
+                    class="fas fa-certificate"></i> Global licences</a>
+        </div>
+    </div>
+
+    <!-- footer -->
+    <footer class="legal-footer">
+        <div class="container">
+            <span>© 2023 Horizon Crypto Ltd. — read carefully: your capital is at risk</span>
+            <span>
+                <a href="aboutUs.html">About</a>
+                <a href="terms-of-service.html">Terms</a>
+                <a href="privacy-policy.html">Privacy</a>
+                <a href="riskDisclosure.html">Risk</a>
+            </span>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const hamburger = document.getElementById('hamburger');
+            const navMenu = document.querySelector('.nav-menu');
+            if (hamburger && navMenu) {
+                hamburger.addEventListener('click', () => {
+                    navMenu.style.display = (navMenu.style.display === 'flex') ? 'none' : 'flex';
+                    if (navMenu.style.display === 'flex') {
+                        navMenu.style.flexDirection = 'column';
+                        navMenu.style.position = 'absolute';
+                        navMenu.style.top = '70px';
+                        navMenu.style.left = '0';
+                        navMenu.style.width = '100%';
+                        navMenu.style.background = 'white';
+                        navMenu.style.padding = '30px';
+                        navMenu.style.boxShadow = 'var(--card-shadow)';
+                    }
+                });
+            }
+        });
+    </script>
+
+
+</body>
+
+</html>

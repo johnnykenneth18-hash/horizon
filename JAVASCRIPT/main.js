@@ -452,10 +452,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const learnMoreBtn = document.getElementById("learnMoreBtn");
     if (learnMoreBtn) {
       learnMoreBtn.addEventListener("click", () => {
-        document
-          .getElementById("features")
-          .scrollIntoView({ behavior: "smooth" });
+        window.location.href = 'aboutUs.html';
       });
     }
   }
-});
+ });
